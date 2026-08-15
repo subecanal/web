@@ -1,0 +1,367 @@
+/* ============================================
+   SUBE CANAL — sistema de diseño
+   Tipografía: Syne (títulos) + Inter (cuerpo)
+   Paleta: negro cuero #0b0b0b, verde lima #c1ff00, blanco #f5f5f0
+   Concepto: el pasaje de transporte / boleto como
+   metáfora de pertenecer a la comunidad de Sube Canal.
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Syne:wght@600;700;800&display=swap');
+
+:root{
+  --black: #0b0b0b;
+  --black-soft: #141414;
+  --lime: #c1ff00;
+  --lime-dim: #8fbf00;
+  --white: #f5f5f0;
+  --grey: #a8a8a2;
+  --grey-dim: #6b6b66;
+  --card: #151512;
+  --card-border: rgba(245,245,240,0.09);
+  --radius: 18px;
+  --ticket-notch: 22px;
+  --max: 1160px;
+  --ff-display: 'Syne', sans-serif;
+  --ff-body: 'Inter', sans-serif;
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+
+body{
+  margin:0;
+  background-color: var(--black);
+  background-image:
+    linear-gradient(180deg, rgba(11,11,11,0.88) 0%, rgba(11,11,11,0.94) 100%),
+    url('assets/textura.jpg');
+  background-repeat: repeat;
+  background-size: 620px;
+  background-attachment: fixed;
+  color: var(--white);
+  font-family: var(--ff-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (max-width: 700px){
+  body{ background-attachment: scroll; background-size: 420px; }
+}
+
+img{ max-width:100%; display:block; }
+
+h1,h2,h3,h4{
+  font-family: var(--ff-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+a{ color: inherit; text-decoration: none; }
+
+.wrap{
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.eyebrow{
+  font-family: var(--ff-body);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.75rem;
+  color: var(--lime);
+}
+
+/* Focus visibility */
+a:focus-visible, button:focus-visible{
+  outline: 2px solid var(--lime);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
+
+/* ---------- Header ---------- */
+.site-header{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(11,11,11,0.72);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--card-border);
+}
+.site-header .wrap{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  height: 76px;
+}
+.brand img{ height: 26px; width:auto; }
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap: 32px;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.nav-links a{ opacity: 0.85; transition: opacity .2s, color .2s; }
+.nav-links a:hover{ opacity: 1; color: var(--lime); }
+.nav-cta{
+  background: var(--lime);
+  color: var(--black);
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.nav-cta:hover{ transform: translateY(-2px); box-shadow: 0 8px 24px rgba(193,255,0,0.25); color: var(--black); }
+.nav-toggle{ display:none; }
+
+@media (max-width: 780px){
+  .nav-links{ display:none; }
+  .nav-toggle{
+    display:block;
+    background:none; border:1px solid var(--card-border); color: var(--white);
+    width:40px; height:40px; border-radius: 10px; font-size: 1.1rem;
+  }
+}
+
+/* ---------- Hero ---------- */
+.hero{
+  padding: 96px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+.hero .wrap{ display:grid; grid-template-columns: 1.15fr 0.85fr; gap: 48px; align-items:center; }
+.hero-logo{ width: min(420px, 100%); margin-bottom: 28px; }
+.hero h1{
+  font-size: clamp(2.6rem, 6vw, 4.4rem);
+  color: var(--white);
+}
+.hero h1 .accent{ color: var(--lime); }
+.hero-sub{
+  margin-top: 20px;
+  max-width: 520px;
+  color: var(--grey);
+  font-size: 1.08rem;
+}
+.hero-actions{
+  margin-top: 36px;
+  display:flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 15px 28px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+}
+.btn-primary{ background: var(--lime); color: var(--black); }
+.btn-primary:hover{ transform: translateY(-2px); box-shadow: 0 10px 28px rgba(193,255,0,0.28); }
+.btn-ghost{ background: transparent; color: var(--white); border-color: var(--card-border); }
+.btn-ghost:hover{ border-color: var(--lime); color: var(--lime); }
+
+/* Boarding pass visual in hero */
+.ticket{
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 28px;
+  position: relative;
+  transform: rotate(2.5deg);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.45);
+}
+.ticket::before, .ticket::after{
+  content: "";
+  position: absolute;
+  width: var(--ticket-notch);
+  height: var(--ticket-notch);
+  background: var(--black);
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ticket::before{ left: calc(var(--ticket-notch) / -2); }
+.ticket::after{ right: calc(var(--ticket-notch) / -2); }
+.ticket-row{ display:flex; justify-content: space-between; gap:12px; }
+.ticket-divider{
+  border: none;
+  border-top: 2px dashed var(--card-border);
+  margin: 20px 0;
+}
+.ticket-label{ font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--grey-dim); font-weight:700; }
+.ticket-value{ font-family: var(--ff-display); font-weight: 700; font-size: 1.1rem; margin-top: 4px; }
+.ticket-value.lime{ color: var(--lime); }
+.ticket-barcode{
+  margin-top: 22px;
+  height: 46px;
+  background-image: repeating-linear-gradient(90deg, var(--white) 0 3px, transparent 3px 6px, var(--white) 6px 9px, transparent 9px 14px, var(--white) 14px 15px, transparent 15px 20px);
+  opacity: 0.85;
+  border-radius: 4px;
+}
+
+@media (max-width: 900px){
+  .hero .wrap{ grid-template-columns: 1fr; }
+  .ticket{ transform: rotate(0); justify-self: center; max-width: 420px; }
+}
+
+/* ---------- Section shell ---------- */
+section{ padding: 88px 0; }
+.section-head{ max-width: 640px; margin-bottom: 52px; }
+.section-head h2{ font-size: clamp(1.9rem, 4vw, 2.7rem); margin-top: 10px; }
+.section-head p{ color: var(--grey); margin-top: 16px; font-size: 1.02rem; }
+
+/* ---------- Qué es Sube Canal ---------- */
+.about{ border-top: 1px solid var(--card-border); }
+.about-grid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.about-card{
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+.about-card .num{ font-family: var(--ff-display); color: var(--lime); font-size: 0.85rem; font-weight: 800; }
+.about-card h3{ font-size: 1.15rem; margin-top: 14px; text-transform: none; }
+.about-card p{ color: var(--grey); margin-top: 10px; font-size: 0.95rem; }
+
+@media (max-width: 820px){
+  .about-grid{ grid-template-columns: 1fr; }
+}
+
+/* ---------- Beneficios ---------- */
+.benefits{ border-top: 1px solid var(--card-border); }
+.benefit-grid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.benefit-card{
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  transition: transform .25s ease, border-color .25s ease;
+  display:flex;
+  flex-direction:column;
+  gap: 16px;
+}
+.benefit-card:hover{ transform: translateY(-4px); border-color: rgba(193,255,0,0.35); }
+.benefit-top{ display:flex; align-items:center; gap: 14px; }
+.benefit-logo{
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  background: var(--black-soft);
+  overflow:hidden;
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  border: 1px solid var(--card-border);
+}
+.benefit-logo img{ width:100%; height:100%; object-fit: cover; }
+.benefit-logo.mono{
+  font-family: var(--ff-display);
+  font-weight: 800;
+  color: var(--lime);
+  font-size: 1.1rem;
+}
+.benefit-name{ font-family: var(--ff-display); font-weight: 700; font-size: 1.05rem; text-transform: none; }
+.benefit-cat{ color: var(--grey-dim); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.benefit-perks{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap: 8px; }
+.benefit-perks li{
+  font-size: 0.92rem;
+  color: var(--white);
+  padding-left: 20px;
+  position: relative;
+}
+.benefit-perks li::before{
+  content: "";
+  position:absolute; left:0; top: 8px;
+  width: 8px; height: 8px;
+  background: var(--lime);
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.benefit-foot{ margin-top: auto; padding-top: 8px; border-top: 1px solid var(--card-border); display:flex; justify-content: space-between; align-items:center; }
+.benefit-ig{ font-size: 0.85rem; font-weight: 600; color: var(--grey); display:flex; align-items:center; gap:6px; transition: color .2s; }
+.benefit-ig:hover{ color: var(--lime); }
+
+@media (max-width: 980px){
+  .benefit-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px){
+  .benefit-grid{ grid-template-columns: 1fr; }
+}
+
+/* ---------- Asociate ---------- */
+.join{ border-top: 1px solid var(--card-border); }
+.plans{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.plan{
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+.plan.featured{
+  border-color: var(--lime);
+  box-shadow: 0 0 0 1px rgba(193,255,0,0.25), 0 24px 50px rgba(193,255,0,0.08);
+}
+.plan-tag{
+  position:absolute; top:-13px; left: 28px;
+  background: var(--lime); color: var(--black);
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 5px 12px; border-radius: 999px;
+}
+.plan h3{ font-size: 1.05rem; text-transform: none; color: var(--grey); font-family: var(--ff-body); font-weight:600; }
+.plan .price{ font-family: var(--ff-display); font-size: 2.4rem; margin-top: 14px; color: var(--white); }
+.plan .price span{ font-size: 0.95rem; color: var(--grey-dim); font-family: var(--ff-body); font-weight:600; text-transform: none; }
+.plan p.desc{ color: var(--grey); margin-top: 12px; font-size: 0.92rem; flex-grow: 1; }
+.plan .btn{ margin-top: 24px; justify-content:center; width: 100%; }
+
+@media (max-width: 980px){
+  .plans{ grid-template-columns: 1fr; }
+}
+
+/* ---------- Footer ---------- */
+footer{
+  border-top: 1px solid var(--card-border);
+  padding: 48px 0 32px;
+}
+footer .wrap{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+footer .brand img{ height: 20px; opacity: 0.9; }
+.footer-links{ display:flex; gap: 22px; font-size: 0.88rem; color: var(--grey); }
+.footer-links a:hover{ color: var(--lime); }
+.footer-note{ width:100%; margin-top: 24px; font-size: 0.78rem; color: var(--grey-dim); }
