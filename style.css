@@ -124,6 +124,7 @@ a:focus-visible, button:focus-visible{
 }
 .nav-links a{ opacity: 0.85; transition: opacity .2s, color .2s; }
 .nav-links a:hover{ opacity: 1; color: var(--lime); }
+.nav-link-accent{ color: var(--lime) !important; opacity: 1 !important; }
 .nav-cta{
   background: var(--lime);
   color: var(--black);
@@ -164,10 +165,12 @@ a:focus-visible, button:focus-visible{
 .hero h1 .accent{ color: var(--lime); }
 .hero-sub{
   margin-top: 20px;
-  max-width: 520px;
+  max-width: 540px;
   color: var(--grey);
   font-size: clamp(0.98rem, 2.2vw, 1.08rem);
 }
+.hero-sub p + p{ margin-top: 14px; }
+.hero-sub p{ margin: 0; }
 .hero-actions{
   margin-top: 36px;
   display:flex;
@@ -274,29 +277,7 @@ section{ padding: 88px 0; }
   .section-head{ margin-bottom: 36px; }
 }
 
-/* ---------- Qué es Sube Canal ---------- */
-.about{ border-top: 1px solid var(--card-border); }
-.about-grid{
-  display:grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-}
-.about-card{
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 28px;
-}
-.about-card .num{ font-family: var(--ff-display); color: var(--lime); font-size: 0.85rem; font-weight: 800; }
-.about-card h3{ font-size: 1.15rem; margin-top: 14px; text-transform: none; }
-.about-card p{ color: var(--grey); margin-top: 10px; font-size: 0.95rem; }
 
-@media (max-width: 900px){
-  .about-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 560px){
-  .about-grid{ grid-template-columns: 1fr; }
-}
 
 /* ---------- Beneficios ---------- */
 .benefits{ border-top: 1px solid var(--card-border); }
@@ -406,7 +387,7 @@ footer{
   border-top: 1px solid var(--card-border);
   padding: 48px 0 32px;
 }
-footer .wrap{
+.footer-top{
   display:flex;
   justify-content: space-between;
   align-items:center;
@@ -416,4 +397,29 @@ footer .wrap{
 footer .brand img{ height: 20px; opacity: 0.9; }
 .footer-links{ display:flex; gap: 22px; font-size: 0.88rem; color: var(--grey); }
 .footer-links a:hover{ color: var(--lime); }
+
+.footer-channels{
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--card-border);
+  display:flex;
+  flex-wrap: wrap;
+  gap: 20px 28px;
+}
+.footer-channels a{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--grey);
+  transition: color .2s;
+}
+.footer-channels a:hover{ color: var(--lime); }
+.footer-channels svg{ flex-shrink: 0; }
+
 .footer-note{ width:100%; margin-top: 24px; font-size: 0.78rem; color: var(--grey-dim); }
+
+@media (max-width: 560px){
+  .footer-channels{ flex-direction: column; gap: 14px; }
+}

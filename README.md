@@ -7,13 +7,49 @@ Es un sitio estático (HTML + CSS puro, sin build ni dependencias) pensado para 
 ## Estructura
 
 ```
-index.html          → toda la página (hero, qué es, beneficios, asociate)
-style.css           → estilos (colores, tipografías, layout)
+index.html          → toda la página (hero, beneficios, asociate)
+style.css            → estilos (colores, tipografías, layout)
 assets/
-  logo.png           → logo de Sube Canal
-  textura.jpg        → textura de fondo
-  socios/            → logos de los comercios/espacios con beneficios
+  logo.png            → logo de Sube Canal
+  textura.jpg         → textura de fondo
+  benefits.js         → intenta cargar los beneficios desde la planilla (ver abajo)
+  socios/             → logos de los comercios/espacios con beneficios
 ```
+
+## Beneficios automáticos desde Google Sheets
+
+`assets/benefits.js` intenta traer los beneficios en vivo desde tu planilla
+publicada ("Archivo → Compartir → Publicar en la web", exportada como CSV).
+Si el navegador logra leerla, reemplaza automáticamente las tarjetas de la
+sección Beneficios. **Si no puede** (por ejemplo si Google bloquea el acceso
+desde otro dominio, o cambia la estructura de columnas), no pasa nada: la
+página se queda con las tarjetas fijas que ya están escritas en `index.html`,
+sin mostrar ningún error.
+
+No pude probar en este entorno si Google permite ese acceso desde un sitio
+externo (docs.google.com no está habilitado en mi sandbox), así que es
+importante que lo verifiques vos una vez publicado el sitio:
+
+1. Publicá el sitio en GitHub Pages (ver más abajo).
+2. Abrilo, andá a la sección Beneficios y confirmá si los datos vienen de la
+   planilla (probá cambiar un descuento en la planilla y recargar la página
+   unos minutos después) o si se quedó con el listado fijo.
+3. Si se quedó con el fijo, lo más probable es que los encabezados de columna
+   de tu planilla no coincidan con lo que el script espera. El script busca,
+   sin importar mayúsculas ni acentos, columnas cuyo título contenga:
+   - **Nombre**: "nombre", "comercio", "negocio" o "espacio"
+   - **Categoría** (opcional): "rubro" o "categoria"
+   - **Instagram** (opcional): "instagram" o "ig"
+   - **Logo** (opcional, URL pública a una imagen): "logo" o "imagen"
+   - **Beneficio(s)**: cualquier columna que contenga "beneficio" o
+     "descuento" (podés tener más de una, por ejemplo "Beneficio 1" y
+     "Beneficio 2" — se muestran todas como viñetas)
+
+   Si tus encabezados son distintos, mandámelos (o una captura de la
+   primera fila de la planilla) y ajusto el script para que matcheen exacto.
+
+Mientras tanto, el listado fijo en `index.html` sigue siendo la fuente de
+verdad y se puede editar a mano como siempre.
 
 ## Cómo publicarlo en GitHub Pages
 
