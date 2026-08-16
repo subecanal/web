@@ -153,12 +153,13 @@ a:focus-visible, button:focus-visible{
   position: relative;
   overflow: hidden;
 }
-.hero .wrap{ display:grid; grid-template-columns: 1.15fr 0.85fr; gap: 48px; align-items:center; }
+.hero .wrap{ display:grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 48px; align-items:center; }
 .hero-logo{ width: min(420px, 100%); margin-bottom: 28px; }
 .hero h1{
   font-size: clamp(2.2rem, 7vw, 4.4rem);
   color: var(--white);
-  overflow-wrap: break-word;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .hero h1 .accent{ color: var(--lime); }
 .hero-sub{
@@ -240,8 +241,8 @@ a:focus-visible, button:focus-visible{
   font-weight: 700;
   font-size: clamp(0.95rem, 4.2vw, 1.1rem);
   margin-top: 4px;
-  overflow-wrap: break-word;
-  hyphens: auto;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .ticket-value.lime{ color: var(--lime); }
 .ticket-barcode{
@@ -265,7 +266,7 @@ a:focus-visible, button:focus-visible{
 /* ---------- Section shell ---------- */
 section{ padding: 88px 0; }
 .section-head{ max-width: 640px; margin-bottom: 52px; }
-.section-head h2{ font-size: clamp(1.7rem, 6vw, 2.7rem); margin-top: 10px; overflow-wrap: break-word; }
+.section-head h2{ font-size: clamp(1.7rem, 6vw, 2.7rem); margin-top: 10px; overflow-wrap: normal; word-break: normal; }
 .section-head p{ color: var(--grey); margin-top: 16px; font-size: 1.02rem; }
 
 @media (max-width: 640px){
@@ -277,7 +278,7 @@ section{ padding: 88px 0; }
 .about{ border-top: 1px solid var(--card-border); }
 .about-grid{
   display:grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
 .about-card{
@@ -291,7 +292,7 @@ section{ padding: 88px 0; }
 .about-card p{ color: var(--grey); margin-top: 10px; font-size: 0.95rem; }
 
 @media (max-width: 900px){
-  .about-grid{ grid-template-columns: repeat(2, 1fr); }
+  .about-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px){
   .about-grid{ grid-template-columns: 1fr; }
@@ -301,7 +302,7 @@ section{ padding: 88px 0; }
 .benefits{ border-top: 1px solid var(--card-border); }
 .benefit-grid{
   display:grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
 }
 .benefit-card{
@@ -355,7 +356,7 @@ section{ padding: 88px 0; }
 .benefit-ig:hover{ color: var(--lime); }
 
 @media (max-width: 980px){
-  .benefit-grid{ grid-template-columns: repeat(2, 1fr); }
+  .benefit-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px){
   .benefit-grid{ grid-template-columns: 1fr; }
@@ -365,7 +366,7 @@ section{ padding: 88px 0; }
 .join{ border-top: 1px solid var(--card-border); }
 .plans{
   display:grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
 .plan{
