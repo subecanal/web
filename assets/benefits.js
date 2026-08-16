@@ -21,8 +21,9 @@
     return stripAccents(h).toLowerCase().trim();
   }
 
-  // Parser de CSV simple, soporta comillas y comas dentro de campos.
-  function parseCSV(text) {
+  // Parser de CSV simple, soporta comillas, comas y saltos de línea dentro de un campo.
+  function parseCSV(rawText) {
+    var text = String(rawText).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     var rows = [],
       row = [],
       field = "",
@@ -102,6 +103,24 @@
     if (/^https?:\/\//i.test(s)) return s;
     return "https://www.instagram.com/" + s.replace(/^@/, "") + "/";
   }
+
+  // Logos que ya tenemos subidos localmente (assets/socios). Si la planilla
+  // no trae una columna de logo, pero el @ coincide con uno de estos
+  // comercios, usamos el logo local en vez del ícono con inicial.
+  var LOCAL_LOGOS = {
+    "puntoexe.informatica": "assets/socios/exe-informatica.jpg",
+    "casachicha.lp": "assets/socios/casa-chicha.png",
+    "la_compostera": "assets/socios/la-compostera.png",
+    "laola.indie": "assets/socios/la-ola-indie.png",
+    "libreriamascaro": "assets/socios/mascaro.png",
+    "mundo.semilla": "assets/socios/mundo-semilla.jpg",
+    "tatana.ar": "assets/socios/tatana.png",
+  };
+  function localLogoFor(igValue) {
+    var handle = igHandle(igValue).replace(/^@/, "").toLowerCase();
+    return LOCAL_LOGOS[handle] || "";
+  }
+
   function escapeHtml(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
@@ -178,35 +197,65 @@
       var rows = parseCSV(text);
       if (rows.length < 2) return;
 
-      var headers = rows[0];
-      var nombreCol = findCol(headers, ["nombre", "comercio", "negocio", "espacio"]);
-      var catCol = findCol(headers, ["rubro", "categoria"]);
-      var igCol = findCol(headers, ["instagram", " ig", "ig "]);
-      var logoCol = findCol(headers, ["logo", "imagen"]);
-      var beneficioCols = findCols(headers, ["beneficio", "descuento"]);
+      // La fila de encabezados no siempre es la primera (puede haber una
+      // fila de aviso/título arriba). Buscamos, entre las primeras filas,
+      // cuál contiene tanto una columna de nombre como una de beneficio.
+      var headerRowIndex = -1,
+        nombreCol = -1,
+        catCol = -1,
+        igCol = -1,
+        logoCol = -1,
+        beneficioCols = [];
+
+      for (var h = 0; h < Math.min(rows.length, 6); h++) {
+        var candidateHeaders = rows[h];
+        var nCol = findCol(candidateHeaders, ["comercio", "nombre", "negocio", "espacio"]);
+        var bCols = findCols(candidateHeaders, ["beneficio", "descuento"]);
+        if (nCol !== -1 && bCols.length) {
+          headerRowIndex = h;
+          nombreCol = nCol;
+          beneficioCols = bCols;
+          catCol = findCol(candidateHeaders, ["rubro", "categoria"]);
+          igCol = findCol(candidateHeaders, ["instagram", " ig", "ig "]);
+          logoCol = findCol(candidateHeaders, ["logo", "imagen"]);
+          break;
+        }
+      }
 
       // Si no reconocemos las columnas clave, no tocamos nada:
       // se queda el listado fijo que ya está en el HTML.
-      if (nombreCol === -1 || beneficioCols.length === 0) return;
+      if (headerRowIndex === -1) return;
 
       var items = [];
-      for (var r = 1; r < rows.length; r++) {
+      for (var r = headerRowIndex + 1; r < rows.length; r++) {
         var row = rows[r];
         var nombre = (row[nombreCol] || "").trim();
         if (!nombre) continue;
-        var perks = beneficioCols
-          .map(function (c) {
-            return (row[c] || "").trim();
-          })
-          .filter(function (v) {
-            return v;
-          });
+
+        // Cada celda de beneficio puede traer varios ítems separados
+        // por salto de línea (ej: "10% en birras\n10% en talleres").
+        var perks = [];
+        beneficioCols.forEach(function (c) {
+          (row[c] || "")
+            .split(/\r?\n/)
+            .map(function (v) {
+              return v.trim();
+            })
+            .filter(function (v) {
+              return v;
+            })
+            .forEach(function (v) {
+              perks.push(v);
+            });
+        });
         if (!perks.length) continue;
+
+        var igValue = igCol !== -1 ? (row[igCol] || "").trim() : "";
         items.push({
           nombre: nombre,
           categoria: catCol !== -1 ? (row[catCol] || "").trim() : "",
-          ig: igCol !== -1 ? (row[igCol] || "").trim() : "",
-          logo: logoCol !== -1 ? (row[logoCol] || "").trim() : "",
+          ig: igValue,
+          logo: (logoCol !== -1 ? (row[logoCol] || "").trim() : "") || localLogoFor(igValue),
           perks: perks,
         });
       }
