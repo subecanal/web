@@ -13,10 +13,18 @@
 <header class="site-header">
   <div class="wrap">
     <a href="#top" class="brand"><img src="assets/logo.png" alt="Sube Canal"></a>
-    <nav class="nav-links">
+    <nav class="nav-links" id="nav-links">
       <a href="#beneficios">Beneficios</a>
+      <a href="#asociate">Pasajerxs</a>
+      <a href="#contenidos">Contenidos</a>
+      <a href="#tienda">Tienda</a>
     </nav>
-    <a href="#asociate" class="nav-cta">Sumate</a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <g class="line-open"><path d="M4 6h16M4 12h16M4 18h16"></path></g>
+        <g class="line-close"><path d="M5 5l14 14M19 5L5 19"></path></g>
+      </svg>
+    </button>
   </div>
 </header>
 
@@ -76,7 +84,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo"><img src="assets/socios/exe-informatica.jpg" alt=".exe informática"></div>
+            <div class="benefit-logo mono" data-slug="puntoexe.informatica" data-name=".exe informática">.</div>
             <div>
               <div class="benefit-name">.exe informática</div>
               <div class="benefit-cat">Tecnología</div>
@@ -92,7 +100,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo mono">C</div>
+            <div class="benefit-logo mono" data-slug="carpincho.indumentaria" data-name="Carpincho">C</div>
             <div>
               <div class="benefit-name">Carpincho</div>
               <div class="benefit-cat">Indumentaria</div>
@@ -108,7 +116,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo"><img src="assets/socios/casa-chicha.png" alt="Casa Chicha"></div>
+            <div class="benefit-logo mono" data-slug="casachicha.lp" data-name="Casa Chicha">C</div>
             <div>
               <div class="benefit-name">Casa Chicha</div>
               <div class="benefit-cat">Producción cultural</div>
@@ -125,7 +133,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo"><img src="assets/socios/la-compostera.png" alt="La Compostera"></div>
+            <div class="benefit-logo mono" data-slug="la_compostera" data-name="La Compostera">L</div>
             <div>
               <div class="benefit-name">La Compostera</div>
               <div class="benefit-cat">Gastronomía</div>
@@ -141,7 +149,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo"><img src="assets/socios/la-ola-indie.png" alt="La Ola Indie"></div>
+            <div class="benefit-logo mono" data-slug="laola.indie" data-name="La Ola Indie">L</div>
             <div>
               <div class="benefit-name">La Ola Indie</div>
               <div class="benefit-cat">Eventos</div>
@@ -157,7 +165,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo"><img src="assets/socios/mascaro.png" alt="Mascaró"></div>
+            <div class="benefit-logo mono" data-slug="libreriamascaro" data-name="Mascaró">M</div>
             <div>
               <div class="benefit-name">Mascaró</div>
               <div class="benefit-cat">Librería / Editorial</div>
@@ -173,7 +181,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo"><img src="assets/socios/mundo-semilla.jpg" alt="Mundo Semilla"></div>
+            <div class="benefit-logo mono" data-slug="mundo.semilla" data-name="Mundo Semilla">M</div>
             <div>
               <div class="benefit-name">Mundo Semilla</div>
               <div class="benefit-cat">Gastronomía</div>
@@ -189,7 +197,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo mono">P</div>
+            <div class="benefit-logo mono" data-slug="pao.tatt" data-name="Pao tatt">P</div>
             <div>
               <div class="benefit-name">Pao tatt</div>
               <div class="benefit-cat">Tatuajes</div>
@@ -205,7 +213,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo mono">R</div>
+            <div class="benefit-logo mono" data-slug="refugio62_" data-name="Refugio 62">R</div>
             <div>
               <div class="benefit-name">Refugio 62</div>
               <div class="benefit-cat">Gastronomía</div>
@@ -221,7 +229,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo mono">R</div>
+            <div class="benefit-logo mono" data-slug="roots_cooperativa" data-name="Roots Pizza">R</div>
             <div>
               <div class="benefit-name">Roots Pizza</div>
               <div class="benefit-cat">Gastronomía</div>
@@ -237,7 +245,7 @@
 
         <article class="benefit-card">
           <div class="benefit-top">
-            <div class="benefit-logo"><img src="assets/socios/tatana.png" alt="Tatana"></div>
+            <div class="benefit-logo mono" data-slug="tatana.ar" data-name="Tatana">T</div>
             <div>
               <div class="benefit-name">Tatana</div>
               <div class="benefit-cat">Gastronomía</div>
@@ -289,6 +297,54 @@
         </div>
 
       </div>
+
+      <details class="email-help">
+        <summary>
+          <span>¿Necesitás cambiar el mail asociado a tu suscripción?</span>
+          <svg class="chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </summary>
+        <div class="email-help-body">
+          <p>
+            <!-- TODO: confirmar/editar este texto con Sube Canal -->
+            Si te suscribiste con un mail y ahora querés usar otro, completá este formulario
+            y el equipo lo actualiza a mano.
+          </p>
+          <ol>
+            <li>Entrá al formulario y completá tu nombre, el mail viejo y el mail nuevo.</li>
+            <li>Adjuntá una captura del comprobante de la suscripción en Mercado Pago.</li>
+            <li>En un plazo de unos días vas a recibir la confirmación por mail.</li>
+          </ol>
+          <a class="btn btn-ghost" href="#" target="_blank" rel="noopener">
+            <!-- TODO: reemplazar "#" por el link real al Google Form -->
+            Ir al formulario
+          </a>
+          <p class="email-help-note">
+            ⚠️ Falta cargar acá el link al Google Form y las capturas de ejemplo — avisame el
+            link y las imágenes y lo termino de dejar listo.
+          </p>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- CONTENIDOS (próximamente) -->
+  <section class="soon" id="contenidos">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Contenidos</h2>
+        <p>Estamos preparando esta sección. Muy pronto vas a poder ver acá toda la producción de SUBE: radio, streaming y contenido audiovisual.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIENDA (próximamente) -->
+  <section class="soon" id="tienda">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Tienda</h2>
+        <p>Muy pronto vas a poder comprar acá con nuestra tienda online.</p>
+      </div>
     </div>
   </section>
 
@@ -300,7 +356,9 @@
       <a href="#top" class="brand"><img src="assets/logo.png" alt="Sube Canal"></a>
       <nav class="footer-links">
         <a href="#beneficios">Beneficios</a>
-        <a href="#asociate" class="nav-link-accent">Sumate</a>
+        <a href="#asociate">Pasajerxs</a>
+        <a href="#contenidos">Contenidos</a>
+        <a href="#tienda">Tienda</a>
       </nav>
     </div>
 
@@ -331,6 +389,8 @@
   </div>
 </footer>
 
+<script src="assets/nav.js"></script>
+<script src="assets/logo-autoload.js"></script>
 <script src="assets/benefits.js"></script>
 
 </body>

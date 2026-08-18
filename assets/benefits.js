@@ -103,22 +103,8 @@
     if (/^https?:\/\//i.test(s)) return s;
     return "https://www.instagram.com/" + s.replace(/^@/, "") + "/";
   }
-
-  // Logos que ya tenemos subidos localmente (assets/socios). Si la planilla
-  // no trae una columna de logo, pero el @ coincide con uno de estos
-  // comercios, usamos el logo local en vez del ícono con inicial.
-  var LOCAL_LOGOS = {
-    "puntoexe.informatica": "assets/socios/exe-informatica.jpg",
-    "casachicha.lp": "assets/socios/casa-chicha.png",
-    "la_compostera": "assets/socios/la-compostera.png",
-    "laola.indie": "assets/socios/la-ola-indie.png",
-    "libreriamascaro": "assets/socios/mascaro.png",
-    "mundo.semilla": "assets/socios/mundo-semilla.jpg",
-    "tatana.ar": "assets/socios/tatana.png",
-  };
-  function localLogoFor(igValue) {
-    var handle = igHandle(igValue).replace(/^@/, "").toLowerCase();
-    return LOCAL_LOGOS[handle] || "";
+  function slugFromIg(v) {
+    return igHandle(v).replace(/^@/, "");
   }
 
   function escapeHtml(s) {
@@ -132,14 +118,24 @@
     '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.3" cy="6.7" r="1"></circle></svg>';
 
   function cardHTML(item) {
+    // El logo se resuelve así: 1) columna "Logo" de la planilla si trae una
+    // URL, 2) si no, se intenta assets/socios/{handle}.{ext} (lo hace
+    // assets/logo-autoload.js después de insertar las tarjetas), 3) si
+    // tampoco existe, se queda el círculo con la inicial.
+    var slug = slugFromIg(item.ig);
+    var initial = escapeHtml((item.nombre || "?").trim().charAt(0).toUpperCase());
     var logo = item.logo
       ? '<div class="benefit-logo"><img src="' +
         escapeHtml(item.logo) +
         '" alt="' +
         escapeHtml(item.nombre) +
         '" loading="lazy"></div>'
-      : '<div class="benefit-logo mono">' +
-        escapeHtml((item.nombre || "?").trim().charAt(0).toUpperCase()) +
+      : '<div class="benefit-logo mono" data-slug="' +
+        escapeHtml(slug) +
+        '" data-name="' +
+        escapeHtml(item.nombre) +
+        '">' +
+        initial +
         "</div>";
 
     var perksHtml = item.perks
@@ -186,6 +182,7 @@
     if (!grid || !items.length) return;
     grid.innerHTML = items.map(cardHTML).join("");
     grid.setAttribute("data-fallback", "false");
+    if (window.SubeAutoLogos) window.SubeAutoLogos(grid);
   }
 
   fetch(SHEET_CSV_URL)
@@ -255,7 +252,7 @@
           nombre: nombre,
           categoria: catCol !== -1 ? (row[catCol] || "").trim() : "",
           ig: igValue,
-          logo: (logoCol !== -1 ? (row[logoCol] || "").trim() : "") || localLogoFor(igValue),
+          logo: logoCol !== -1 ? (row[logoCol] || "").trim() : "",
           perks: perks,
         });
       }
