@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 """Genera programas/{slug}.html para cada programa de SUBE a partir de una
-plantilla común. Correr de nuevo después de editar PROGRAMS o TEMPLATE para
-regenerar todas las páginas."""
+plantilla común. Correr de nuevo después de editar PROGRAMS para
+regenerar todas las páginas.
+
+Cada programa puede tener:
+- subtitle: texto corto tipo "Un programa sobre..." (o None si falta)
+- instagram: handle sin @ (o None si el programa no tiene cuenta propia)
+- hosts: lista de (nombre, handle) de quienes conducen (vacía si falta)
+- production: lista de (nombre, handle) de quienes producen (vacía si no aplica)
+
+Si hosts está vacío, se muestra el bloque de "pendiente" en vez de la lista.
+"""
 import os
 
 PROGRAMS = [
@@ -11,6 +20,13 @@ PROGRAMS = [
         "video_id": "V1ggB4EdYsg",
         "list_id": "PLYT7ujTIBmWb0QoWKs0vVNdaJGhMFRCdU",
         "schedule": "Lunes · 18:00",
+        "subtitle": None,
+        "instagram": "streamingcopa",
+        "hosts": [
+            ("Mati Cañas", "matiascanasm"),
+            ("Chipi Ardaiz", "chipiarda"),
+        ],
+        "production": [],
     },
     {
         "slug": "marcando-la-cancha",
@@ -18,13 +34,34 @@ PROGRAMS = [
         "video_id": "4S4S8tfHEok",
         "list_id": "PLYT7ujTIBmWYogyJY-uOZ4T5qc6VLCZzS",
         "schedule": "Lunes · 19:30",
+        "subtitle": None,
+        "instagram": "marcandolacancha.sube",
+        "hosts": [
+            ("Agustina Coto", "aguscoto_"),
+            ("Joaquín De Martino", "joacodemartino"),
+            ("Santino Meli", "tinomeli_"),
+        ],
+        "production": [
+            ("Cami Del Canto", "camidelcant0"),
+        ],
     },
     {
         "slug": "falopa-informativa-nacional",
-        "name": "F4lopa informativa nacional",
+        "name": "FIN! F@lopa informativa nacional",
         "video_id": "Vrjjcu1UXfA",
         "list_id": "PLYT7ujTIBmWbzBCsllEBDI-sC8iTx60qC",
         "schedule": "Lunes · 21:00",
+        "subtitle": None,
+        "instagram": None,
+        "hosts": [
+            ("Albertina Bidart", "albertinabidart"),
+            ("Fran Panella", "franpanella4"),
+            ("Federico Machado", "fede_machado_b"),
+        ],
+        "production": [
+            ("Juanma García", "juanmgvieira"),
+            ("Pau Zoppolo", "paulazoppolo"),
+        ],
     },
     {
         "slug": "el-amplificador",
@@ -32,6 +69,10 @@ PROGRAMS = [
         "video_id": "tcXuPtIap44",
         "list_id": "PLYT7ujTIBmWbDt100agv2nniNoCyQI_E4",
         "schedule": "Jueves · 18:00",
+        "subtitle": None,
+        "instagram": None,
+        "hosts": [],
+        "production": [],
     },
     {
         "slug": "estacion-freak",
@@ -39,6 +80,10 @@ PROGRAMS = [
         "video_id": "gygi5qlOJGk",
         "list_id": "PLYT7ujTIBmWZWm37-X_-CzKtCt5fgRIE1",
         "schedule": "Jueves · 19:30 · cada dos semanas, alterna con ¿De qué viven?",
+        "subtitle": None,
+        "instagram": None,
+        "hosts": [],
+        "production": [],
     },
     {
         "slug": "de-que-viven",
@@ -46,6 +91,10 @@ PROGRAMS = [
         "video_id": "xOVJ7J8DEbE",
         "list_id": "PLYT7ujTIBmWYiJVF9dSRf6__ckwOeMf_E",
         "schedule": "Jueves · 20:00 · cada dos semanas, alterna con Estación freak",
+        "subtitle": None,
+        "instagram": None,
+        "hosts": [],
+        "production": [],
     },
     {
         "slug": "chicha-y-limonada",
@@ -53,6 +102,10 @@ PROGRAMS = [
         "video_id": "H5E_e9X_3xY",
         "list_id": "PLYT7ujTIBmWbEmAmjwWQMRK0TahbqHlv2",
         "schedule": "Jueves · 21:30",
+        "subtitle": None,
+        "instagram": None,
+        "hosts": [],
+        "production": [],
     },
     {
         "slug": "umbrales",
@@ -60,8 +113,85 @@ PROGRAMS = [
         "video_id": "192gtJRG9KI",
         "list_id": "PLSOqo_jyCCX8",
         "schedule": "On demand",
+        "subtitle": None,
+        "instagram": None,
+        "hosts": [],
+        "production": [],
     },
 ]
+
+IG_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.3" cy="6.7" r="1"></circle></svg>'
+
+
+def ig_url(handle):
+    return "https://www.instagram.com/" + handle.lstrip("@") + "/"
+
+
+def people_list_html(people):
+    items = []
+    for name, handle in people:
+        items.append(
+            '<li><a href="{url}" target="_blank" rel="noopener">{icon}<span>{name}</span></a></li>'.format(
+                url=ig_url(handle), icon=IG_ICON, name=name
+            )
+        )
+    return '<ul class="people-list">' + "".join(items) + "</ul>"
+
+
+PENDING_NOTE = (
+    '<p class="pending-note">⚠️ Todavía no tenemos cargado quién conduce y quién '
+    "produce este programa. Pasame los nombres (y roles) y los agrego acá.</p>"
+)
+
+
+def info_grid_html(p):
+    if not p["hosts"]:
+        return """
+      <div class="program-info-grid">
+        <div class="program-info-card">
+          <h2>Quiénes lo hacen</h2>
+          {pending}
+        </div>
+        <div class="program-info-card">
+          <h2>Redes del programa</h2>
+          <p class="pending-note">⚠️ Todavía no tenemos las redes sociales propias de
+          este programa. Si tiene Instagram/otras redes, pasámelas y las agrego acá.</p>
+        </div>
+      </div>""".format(pending=PENDING_NOTE)
+
+    cards = []
+    cards.append(
+        '<div class="program-info-card"><h2>Conducen</h2>{list}</div>'.format(
+            list=people_list_html(p["hosts"])
+        )
+    )
+    if p["production"]:
+        cards.append(
+            '<div class="program-info-card"><h2>Producción</h2>{list}</div>'.format(
+                list=people_list_html(p["production"])
+            )
+        )
+    return '<div class="program-info-grid">' + "".join(cards) + "</div>"
+
+
+def subtitle_html(p):
+    if p["subtitle"]:
+        return '<p class="program-subtitle">{}</p>'.format(p["subtitle"])
+    return (
+        '<p class="program-subtitle program-subtitle--pending">'
+        "⚠️ Falta el subtítulo (“Un programa sobre…”) — pasámelo y lo cargo.</p>"
+    )
+
+
+def ig_chip_html(p):
+    if p["instagram"]:
+        return (
+            '<a class="program-ig-chip" href="{url}" target="_blank" rel="noopener">{icon}<span>@{handle}</span></a>'.format(
+                url=ig_url(p["instagram"]), icon=IG_ICON, handle=p["instagram"]
+            )
+        )
+    return '<span class="program-ig-chip program-ig-chip--pending">Sin Instagram propio todavía</span>'
+
 
 TEMPLATE = """<!DOCTYPE html>
 <html lang="es-AR">
@@ -102,7 +232,11 @@ TEMPLATE = """<!DOCTYPE html>
       </a>
       <p class="eyebrow">Programa</p>
       <h1>{name}</h1>
-      <p class="program-schedule">{schedule}</p>
+      {subtitle}
+      <div class="program-meta">
+        <span class="program-schedule">{schedule}</span>
+        {ig_chip}
+      </div>
     </div>
   </section>
 
@@ -118,22 +252,7 @@ TEMPLATE = """<!DOCTYPE html>
         </iframe>
       </div>
 
-      <div class="program-info-grid">
-        <div class="program-info-card">
-          <h2>Quiénes lo hacen</h2>
-          <p class="pending-note">
-            ⚠️ Todavía no tenemos cargado quién conduce y quién produce este programa.
-            Pasame los nombres (y roles) y los agrego acá.
-          </p>
-        </div>
-        <div class="program-info-card">
-          <h2>Redes del programa</h2>
-          <p class="pending-note">
-            ⚠️ Todavía no tenemos las redes sociales propias de este programa.
-            Si tiene Instagram/otras redes, pasámelas y las agrego acá.
-          </p>
-        </div>
-      </div>
+      {info_grid}
     </div>
   </section>
 </main>
@@ -177,7 +296,15 @@ if __name__ == "__main__":
     out_dir = os.path.join(os.path.dirname(__file__), "programas")
     os.makedirs(out_dir, exist_ok=True)
     for p in PROGRAMS:
-        html = TEMPLATE.format(**p)
+        html = TEMPLATE.format(
+            name=p["name"],
+            schedule=p["schedule"],
+            video_id=p["video_id"],
+            list_id=p["list_id"],
+            subtitle=subtitle_html(p),
+            ig_chip=ig_chip_html(p),
+            info_grid=info_grid_html(p),
+        )
         path = os.path.join(out_dir, p["slug"] + ".html")
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)

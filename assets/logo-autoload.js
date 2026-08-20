@@ -14,7 +14,7 @@
 (function () {
   "use strict";
 
-  var EXTENSIONS = ["jpg", "jpeg", "png", "webp"];
+  var EXTENSIONS = ["png", "jpg", "jpeg", "webp"];
 
   function tryNext(node, slug, idx) {
     if (!slug || idx >= EXTENSIONS.length) return; // no se encontró: se queda la inicial
