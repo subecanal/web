@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SUBE :: Un viaje colectivo por La Plata</title>
-<meta name="description" content="SUBE es un medio de comunicación autogestivo con identidad platense. Conocé los beneficios de la Comunidad de Pasajerxs y sumate como socix.">
+<title>Contenidos · SUBE</title>
+<meta name="description" content="Programación y noticias de SUBE.">
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -16,7 +16,7 @@
     <nav class="nav-links" id="nav-links">
       <a href="beneficios.html">Beneficios</a>
       <a href="pasajerxs.html">Pasajerxs</a>
-      <a href="contenidos.html">Contenidos</a>
+      <a href="contenidos.html" class="is-current">Contenidos</a>
       <a href="tienda.html">Tienda</a>
     </nav>
     <button class="nav-toggle" id="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-links">
@@ -29,43 +29,26 @@
 </header>
 
 <main>
-  <section class="hero">
+  <section class="hub">
     <div class="wrap">
-      <div>
-        <h1>Subite a este<br><span class="accent">viaje colectivo</span></h1>
-        <div class="hero-sub">
-          <p>SUBE es un medio de comunicación independiente y autogestivo hecho en La Plata. Creamos contenidos, generamos encuentros y construimos comunidad alrededor de la cultura local.</p>
-          <p>La Comunidad de Pasajerxs sostiene SUBE todos los meses. Sumándote, vos también sos parte y accedés a beneficios en una red de espacios amigos.</p>
-        </div>
-        <div class="hero-actions">
-          <a href="pasajerxs.html" class="btn btn-primary">Quiero ser pasajerx</a>
-          <a href="beneficios.html" class="btn btn-ghost">Ver beneficios</a>
-        </div>
+      <div class="section-head">
+        <h2>Contenidos</h2>
+        <p>Todo lo que produce SUBE, en un solo lugar.</p>
       </div>
 
-      <div class="ticket" aria-hidden="true">
-        <div class="ticket-row">
-          <div>
-            <div class="ticket-label">Pasaje</div>
-            <div class="ticket-value lime">Sube Canal</div>
-          </div>
-          <div>
-            <div class="ticket-label">Clase</div>
-            <div class="ticket-value">Pasajerx</div>
-          </div>
-        </div>
-        <hr class="ticket-divider">
-        <div class="ticket-row">
-          <div>
-            <div class="ticket-label">Destino</div>
-            <div class="ticket-value">Comunidad</div>
-          </div>
-          <div>
-            <div class="ticket-label">Beneficios</div>
-            <div class="ticket-value">+10 espacios</div>
-          </div>
-        </div>
-        <div class="ticket-barcode"></div>
+      <div class="hub-grid">
+        <a class="hub-card" href="programacion.html">
+          <span class="hub-card-eyebrow">En vivo y on demand</span>
+          <span class="hub-card-title">Programación</span>
+          <span class="hub-card-desc">La grilla completa: días, horarios, playlists y quiénes hacen cada programa.</span>
+          <span class="hub-card-arrow">→</span>
+        </a>
+        <a class="hub-card" href="noticias.html">
+          <span class="hub-card-eyebrow">Próximamente</span>
+          <span class="hub-card-title">Noticias</span>
+          <span class="hub-card-desc">Coberturas, notas y actualidad hecha por SUBE.</span>
+          <span class="hub-card-arrow">→</span>
+        </a>
       </div>
     </div>
   </section>
