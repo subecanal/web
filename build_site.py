@@ -5,9 +5,9 @@ Genera TODO el sitio de Sube Canal a partir de plantillas compartidas
 (header, footer, nav) para que cada página quede consistente.
 
 Correr con: python3 build_site.py
-Vuelve a escribir: index.html, beneficios.html, pasajerxs.html,
-contenidos.html, programacion.html, noticias.html, tienda.html,
-y todos los archivos dentro de programas/.
+Vuelve a escribir: index.html, comunidad.html, contenidos.html,
+noticias.html, tienda.html, contacto.html, y todos los archivos
+dentro de programas/.
 
 Para agregar/editar el contenido de un programa, buscar el diccionario
 PROGRAMS más abajo.
@@ -26,6 +26,8 @@ TIKTOK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" strok
 X_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20"></path></svg>'
 YOUTUBE_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"></rect><path d="M10.5 9.2v5.6l5-2.8-5-2.8z" fill="currentColor" stroke="none"></path></svg>'
 CHEVRON_ICON = '<svg class="chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>'
+ARROW_LEFT_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>'
+ARROW_RIGHT_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>'
 BACK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>'
 BURGER_ICON = '''<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <g class="line-open"><path d="M4 6h16M4 12h16M4 18h16"></path></g>
@@ -33,10 +35,10 @@ BURGER_ICON = '''<svg viewBox="0 0 24 24" width="20" height="20" fill="none" str
       </svg>'''
 
 NAV_ITEMS = [
-    ("beneficios", "Beneficios", "beneficios.html"),
-    ("pasajerxs", "Pasajerxs", "pasajerxs.html"),
+    ("comunidad", "Comunidad", "comunidad.html"),
     ("contenidos", "Contenidos", "contenidos.html"),
     ("tienda", "Tienda", "tienda.html"),
+    ("contacto", "Contacto", "contacto.html"),
 ]
 
 
@@ -135,6 +137,8 @@ def write(path, html):
 # ============================================================
 # HOME (index.html)
 # ============================================================
+LIVE_PLAYLIST_ID = "PLYT7ujTIBmWat3a4FBqiq8kWbAD_kybd5"
+
 HOME_BODY = '''  <section class="hero">
     <div class="wrap">
       <div>
@@ -144,38 +148,35 @@ HOME_BODY = '''  <section class="hero">
           <p>La Comunidad de Pasajerxs sostiene SUBE todos los meses. Sumándote, vos también sos parte y accedés a beneficios en una red de espacios amigos.</p>
         </div>
         <div class="hero-actions">
-          <a href="pasajerxs.html" class="btn btn-primary">Quiero ser pasajerx</a>
-          <a href="beneficios.html" class="btn btn-ghost">Ver beneficios</a>
+          <a href="comunidad.html#asociate" class="btn btn-primary">Quiero ser pasajerx</a>
+          <a href="comunidad.html#beneficios" class="btn btn-ghost">Ver beneficios</a>
         </div>
       </div>
 
-      <div class="ticket" aria-hidden="true">
-        <div class="ticket-row">
-          <div>
-            <div class="ticket-label">Pasaje</div>
-            <div class="ticket-value lime">Sube Canal</div>
-          </div>
-          <div>
-            <div class="ticket-label">Clase</div>
-            <div class="ticket-value">Pasajerx</div>
-          </div>
+      <div class="hero-player">
+        <p class="hero-player-label">En vivo / último programa</p>
+        <div class="video-embed">
+          <iframe
+            src="https://www.youtube.com/embed/videoseries?list={list_id}"
+            title="SUBE — en vivo"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
         </div>
-        <hr class="ticket-divider">
-        <div class="ticket-row">
-          <div>
-            <div class="ticket-label">Destino</div>
-            <div class="ticket-value">Comunidad</div>
-          </div>
-          <div>
-            <div class="ticket-label">Beneficios</div>
-            <div class="ticket-value">+10 espacios</div>
-          </div>
-        </div>
-        <div class="ticket-barcode"></div>
       </div>
     </div>
   </section>
-'''
+
+  <section class="ad-slot">
+    <div class="wrap">
+      <a class="ad-slot-box" href="contacto.html">
+        <span class="ad-slot-title">Publicitá acá</span>
+        <span class="ad-slot-desc">Este espacio puede ser tuyo. Escribinos para conocer los formatos disponibles.</span>
+      </a>
+    </div>
+  </section>
+'''.format(list_id=LIVE_PLAYLIST_ID)
 
 # ============================================================
 # BENEFICIOS (beneficios.html) — grilla tal cual estaba
@@ -215,28 +216,30 @@ def benefit_card_html(slug, initial, name, cat, perks, ig):
         </article>'''.format(slug=slug, name=name, initial=initial, cat=cat, perks=perks_html, ig=ig, icon=IG_ICON)
 
 
-BENEFICIOS_BODY = '''  <section class="benefits">
+COMUNIDAD_BODY = '''  <section class="benefits" id="beneficios">
     <div class="wrap">
       <div class="section-head">
         <h2>Beneficios para nuestra comunidad</h2>
         <p>Espacios amigos que suman descuentos exclusivos para quienes sostienen a SUBE. Mostrá tu carnet de pasajerx y viajá con beneficios.</p>
       </div>
 
-      <div class="benefit-grid" id="benefit-grid" data-fallback="true">
+      <div class="carousel">
+        <button class="carousel-arrow carousel-arrow--prev" type="button" aria-label="Ver beneficios anteriores">{arrow_left}</button>
+
+        <div class="benefit-grid" id="benefit-grid" data-fallback="true">
 
 {cards}
 
+        </div>
+
+        <button class="carousel-arrow carousel-arrow--next" type="button" aria-label="Ver más beneficios">{arrow_right}</button>
       </div>
 
       <p class="benefits-note">Los descuentos y condiciones de cada beneficio son definidos por cada espacio adherido y pueden cambiar sin aviso previo.</p>
     </div>
   </section>
-'''.format(cards="\n\n".join(benefit_card_html(*c) for c in BENEFIT_CARDS))
 
-# ============================================================
-# PASAJERXS (pasajerxs.html) — tal cual estaba
-# ============================================================
-PASAJERXS_BODY = '''  <section class="join">
+  <section class="join" id="asociate">
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow">Asociate</p>
@@ -296,66 +299,26 @@ PASAJERXS_BODY = '''  <section class="join">
 
     </div>
   </section>
-'''.format(chevron=CHEVRON_ICON)
+'''.format(
+    cards="\n\n".join(benefit_card_html(*c) for c in BENEFIT_CARDS),
+    chevron=CHEVRON_ICON,
+    arrow_left=ARROW_LEFT_ICON,
+    arrow_right=ARROW_RIGHT_ICON,
+)
 
 # ============================================================
-# CONTENIDOS — página puente (elegís Programación o Noticias)
+# CONTENIDOS — Programación inline + Noticias como antes (card)
 # ============================================================
-CONTENIDOS_BODY = '''  <section class="hub">
+CONTENIDOS_BODY = '''  <section class="content">
     <div class="wrap">
       <div class="section-head">
         <h2>Contenidos</h2>
         <p>Todo lo que produce SUBE, en un solo lugar.</p>
       </div>
 
-      <div class="hub-grid">
-        <a class="hub-card" href="programacion.html">
-          <span class="hub-card-eyebrow">En vivo y on demand</span>
-          <span class="hub-card-title">Programación</span>
-          <span class="hub-card-desc">La grilla completa: días, horarios, playlists y quiénes hacen cada programa.</span>
-          <span class="hub-card-arrow">→</span>
-        </a>
-        <a class="hub-card" href="noticias.html">
-          <span class="hub-card-eyebrow">Próximamente</span>
-          <span class="hub-card-title">Noticias</span>
-          <span class="hub-card-desc">Coberturas, notas y actualidad hecha por SUBE.</span>
-          <span class="hub-card-arrow">→</span>
-        </a>
-      </div>
-    </div>
-  </section>
-'''
-
-NOTICIAS_BODY = '''  <section class="soon">
-    <div class="wrap">
-      <a class="back-link" href="contenidos.html">{back}Volver a Contenidos</a>
-      <div class="section-head">
-        <h2>Noticias</h2>
-        <p>Estamos preparando esta sección. Muy pronto vas a poder leer acá coberturas, notas y actualidad hecha por SUBE.</p>
-      </div>
-    </div>
-  </section>
-'''.format(back=BACK_ICON)
-
-TIENDA_BODY = '''  <section class="soon">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Tienda</h2>
-        <p>Muy pronto vas a poder comprar acá con nuestra tienda online.</p>
-      </div>
-    </div>
-  </section>
-'''
-
-# ============================================================
-# PROGRAMACIÓN — grilla completa (programacion.html)
-# ============================================================
-PROGRAMACION_BODY = '''  <section class="content">
-    <div class="wrap">
-      <a class="back-link" href="contenidos.html">{back}Volver a Contenidos</a>
-      <div class="section-head">
-        <h2>Programación</h2>
-        <p>La grilla de SUBE: en vivo y on demand. Tocá cualquier programa para ver su info completa.</p>
+      <div class="content-subhead">
+        <span class="content-subhead-eyebrow">En vivo y on demand</span>
+        <h3>Programación</h3>
       </div>
 
       <div class="content-schedule">
@@ -426,9 +389,53 @@ PROGRAMACION_BODY = '''  <section class="content">
         </div>
 
       </div>
+
+      <div class="content-subhead content-subhead--noticias">
+        <span class="content-subhead-eyebrow">Próximamente</span>
+        <h3>Noticias</h3>
+      </div>
+
+      <a class="hub-card" href="noticias.html">
+        <span class="hub-card-title">Coberturas, notas y actualidad</span>
+        <span class="hub-card-desc">Estamos preparando esta sección — todavía no tiene contenido cargado.</span>
+        <span class="hub-card-arrow">→</span>
+      </a>
+
+    </div>
+  </section>
+'''
+
+NOTICIAS_BODY = '''  <section class="soon">
+    <div class="wrap">
+      <a class="back-link" href="contenidos.html">{back}Volver a Contenidos</a>
+      <div class="section-head">
+        <h2>Noticias</h2>
+        <p>Estamos preparando esta sección. Muy pronto vas a poder leer acá coberturas, notas y actualidad hecha por SUBE.</p>
+      </div>
     </div>
   </section>
 '''.format(back=BACK_ICON)
+
+TIENDA_BODY = '''  <section class="soon">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Tienda</h2>
+        <p>Muy pronto vas a poder comprar acá con nuestra tienda online.</p>
+      </div>
+    </div>
+  </section>
+'''
+
+CONTACTO_BODY = '''  <section class="soon">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Contacto</h2>
+        <p>Esta sección la vamos a ir completando. Mientras tanto, escribinos directamente:</p>
+      </div>
+      <a class="btn btn-primary" href="mailto:laplatasube@gmail.com">Escribirnos por mail</a>
+    </div>
+  </section>
+'''
 
 
 # ============================================================
@@ -631,7 +638,7 @@ def ig_chip_html(p):
 def program_body(p):
     return '''  <section class="program-hero">
     <div class="wrap">
-      <a class="back-link" href="../programacion.html">{back}Volver a Programación</a>
+      <a class="back-link" href="../contenidos.html">{back}Volver a Contenidos</a>
       <p class="eyebrow">Programa</p>
       <h1>{name}</h1>
       {subtitle}
@@ -684,24 +691,14 @@ if __name__ == "__main__":
         ),
     )
     write(
-        "beneficios.html",
+        "comunidad.html",
         page_html(
-            "Beneficios · SUBE",
-            "Beneficios para la Comunidad de Pasajerxs de SUBE: descuentos en comercios y espacios amigos de La Plata.",
-            BENEFICIOS_BODY,
+            "Comunidad · SUBE",
+            "La Comunidad de Pasajerxs de SUBE: beneficios en comercios amigos y cómo sumarte con tu aporte.",
+            COMUNIDAD_BODY,
             depth=0,
-            active="beneficios",
-            extra_scripts=["logo-autoload.js", "benefits.js"],
-        ),
-    )
-    write(
-        "pasajerxs.html",
-        page_html(
-            "Pasajerxs · SUBE",
-            "Sumate a la Comunidad de Pasajerxs de SUBE y sostené la producción independiente.",
-            PASAJERXS_BODY,
-            depth=0,
-            active="pasajerxs",
+            active="comunidad",
+            extra_scripts=["logo-autoload.js", "benefits.js", "carousel.js"],
         ),
     )
     write(
@@ -710,16 +707,6 @@ if __name__ == "__main__":
             "Contenidos · SUBE",
             "Programación y noticias de SUBE.",
             CONTENIDOS_BODY,
-            depth=0,
-            active="contenidos",
-        ),
-    )
-    write(
-        "programacion.html",
-        page_html(
-            "Programación · SUBE",
-            "La grilla de programación de SUBE: en vivo y on demand.",
-            PROGRAMACION_BODY,
             depth=0,
             active="contenidos",
         ),
@@ -742,6 +729,16 @@ if __name__ == "__main__":
             TIENDA_BODY,
             depth=0,
             active="tienda",
+        ),
+    )
+    write(
+        "contacto.html",
+        page_html(
+            "Contacto · SUBE",
+            "Contactate con SUBE.",
+            CONTACTO_BODY,
+            depth=0,
+            active="contacto",
         ),
     )
 
