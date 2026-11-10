@@ -226,6 +226,12 @@ def guardar_logo(url, slug, carpeta=None):
     return os.path.relpath(os.path.join(carpeta, nombre), ROOT).replace(os.sep, "/")
 
 
+def logo_anterior(slug, carpeta):
+    """Logo ya guardado de una corrida anterior (o '' si no hay)."""
+    ruta = os.path.join(carpeta, slug + ".webp")
+    return os.path.relpath(ruta, ROOT).replace(os.sep, "/") if os.path.isfile(ruta) else ""
+
+
 def leer_csv(cfg):
     """Descarga una pestaña de Google Sheets como filas de CSV."""
     url = url_csv(cfg)
@@ -287,12 +293,18 @@ def sync_programacion(cfg):
                 usados.add(os.path.basename(p["logo"]))
                 nota("Logo de programa OK, fila {} ({}): {}".format(n, nombre, guardar_logo.ultimo))
             except Exception as e:  # noqa: BLE001
-                aviso("Programación, fila {} ({}): no se pudo usar el logo: {}".format(n, nombre, e))
+                previo = logo_anterior(slug, PROG_LOGOS_DIR)
+                if previo:
+                    p["logo"] = previo
+                    usados.add(os.path.basename(previo))
+                aviso("Programación, fila {} ({}): no se pudo usar el logo{}: {}".format(
+                    n, nombre, " (se mantiene el anterior)" if previo else "", e))
         programas.append(p)
     if os.path.isdir(PROG_LOGOS_DIR):
         for fn in os.listdir(PROG_LOGOS_DIR):
-            if fn not in usados:
-                os.remove(os.path.join(PROG_LOGOS_DIR, fn))
+            ruta = os.path.join(PROG_LOGOS_DIR, fn)
+            if fn not in usados and os.path.isfile(ruta):  # nunca borra carpetas
+                os.remove(ruta)
     with open(PROG_SALIDA, "w", encoding="utf-8") as fh:
         json.dump({"programas": programas}, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
@@ -370,7 +382,9 @@ def sync_comercios(cfg):
                 c["logo"] = guardar_logo(url, slug)
                 nota("Logo de comercio OK, fila {} ({}): {}".format(n, nombre, guardar_logo.ultimo))
             except Exception as e:  # noqa: BLE001
-                problemas.append("fila {} ({}): no se pudo usar el logo: {}".format(n, nombre, e))
+                c["logo"] = logo_anterior(slug, LOGOS_DIR)  # si Drive falla un rato, queda el último logo bueno
+                problemas.append("fila {} ({}): no se pudo usar el logo{}: {}".format(
+                    n, nombre, " (se mantiene el anterior)" if c["logo"] else "", e))
         elif celda(f, cols["logo"]):
             problemas.append("fila {} ({}): la columna de logo no tiene un link válido".format(n, nombre))
         if c["tipo"] != "auspiciante" and not beneficios:
@@ -385,8 +399,9 @@ def sync_comercios(cfg):
     usados = {os.path.basename(c["logo"]) for c in comercios if c["logo"]}
     if os.path.isdir(LOGOS_DIR):
         for fn in os.listdir(LOGOS_DIR):
-            if fn not in usados:
-                os.remove(os.path.join(LOGOS_DIR, fn))
+            ruta = os.path.join(LOGOS_DIR, fn)
+            if fn not in usados and os.path.isfile(ruta):  # nunca borra carpetas
+                os.remove(ruta)
 
     with open(SALIDA, "w", encoding="utf-8") as fh:
         json.dump({"comercios": comercios}, fh, ensure_ascii=False, indent=2)
