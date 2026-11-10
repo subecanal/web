@@ -6,6 +6,9 @@
 <title>SUBE :: Un viaje colectivo por La Plata</title>
 <meta name="description" content="SUBE es un medio de comunicación autogestivo con identidad platense. Conocé los beneficios de la Comunidad de Pasajerxs y sumate como socix.">
 <link rel="icon" href="assets/logo.png">
+<link rel="manifest" href="mi-pase.webmanifest">
+<link rel="apple-touch-icon" href="assets/icono-192.png">
+<meta name="theme-color" content="#0b0b0b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="assets/fonts/Anton-Regular.woff2" as="font" type="font/woff2" crossorigin>
@@ -16,12 +19,15 @@
 
 <header class="site-header">
   <div class="wrap">
-    <div class="header-weather" id="header-weather" aria-live="polite" hidden></div>
+    <div class="header-weather" id="header-weather" role="group" hidden></div>
     <a href="index.html" class="brand"><img src="assets/logo.png" alt="Sube Canal" width="269" height="104"></a>
     <nav class="nav-links" id="nav-links">
       <a href="comunidad.html">Comunidad</a>
       <a href="contenidos.html">Contenidos</a>
+      <a href="noticias.html">Noticias</a>
       <a href="contacto.html">Contacto</a>
+      <a href="mi-pase.html" class="nav-pass">Mi pase</a>
+      <a href="redaccion/">Redacción</a>
     </nav>
     <button class="nav-toggle" id="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-links">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -33,13 +39,12 @@
 </header>
 
 <main>
-  <section class="hero">
+  <section class="hero hero--portada">
     <div class="wrap">
-      <div>
+      <div class="hero-text">
         <h1>Subite a este<br><span class="accent">viaje colectivo</span></h1>
         <div class="hero-sub">
           <p>Somos un canal platense hecho a pulmón. Creamos contenidos, generamos encuentros y construimos comunidad alrededor de la cultura local.</p>
-          <p>La Comunidad de Pasajerxs sostiene SUBE todos los meses. Sumándote, vos también sos parte y accedés a beneficios en una red de espacios amigos.</p>
         </div>
         <div class="hero-actions">
           <a href="comunidad.html#asociate" class="btn btn-primary">Quiero ser pasajerx</a>
@@ -48,6 +53,8 @@
       </div>
 
       <div class="hero-player">
+        <div class="next-stop" id="next-stop" aria-live="polite" data-perfiles="{&quot;streaming-copa&quot;: &quot;streaming copa&quot;, &quot;marcando-la-cancha&quot;: &quot;marcando la cancha&quot;, &quot;falopa-informativa-nacional&quot;: &quot;falopa informativa nacional&quot;, &quot;el-amplificador&quot;: &quot;el amplificador&quot;, &quot;estacion-freak&quot;: &quot;estacion freak&quot;, &quot;de-que-viven&quot;: &quot;¿de qué viven?&quot;, &quot;chicha-y-limonada&quot;: &quot;chicha y limonada&quot;, &quot;umbrales&quot;: &quot;umbrales&quot;}" hidden></div>
+
         <p class="hero-player-label">Último programa</p>
         <div class="video-embed">
           <iframe
@@ -58,28 +65,114 @@
             allowfullscreen>
           </iframe>
         </div>
-
-        <div class="next-stop" id="next-stop" aria-live="polite" data-perfiles="{&quot;streaming-copa&quot;: &quot;Streaming copa&quot;, &quot;marcando-la-cancha&quot;: &quot;Marcando la cancha&quot;, &quot;falopa-informativa-nacional&quot;: &quot;Falopa informativa nacional&quot;, &quot;el-amplificador&quot;: &quot;El amplificador&quot;, &quot;estacion-freak&quot;: &quot;Estacion freak&quot;, &quot;de-que-viven&quot;: &quot;¿De qué viven?&quot;, &quot;chicha-y-limonada&quot;: &quot;Chicha y limonada&quot;, &quot;umbrales&quot;: &quot;Umbrales&quot;}" hidden></div>
       </div>
     </div>
   </section>
 
-  <section class="sponsors">
+  <section class="featured-news">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Noticias destacadas</h2>
+        <a class="section-head-link" href="noticias.html">Ver todas las noticias →</a>
+      </div>
+      <div class="news-list news-list--home">
+        <a class="nc nc--lead" href="noticias/oro-argentino-perdidas-banco-amigo.html" data-seccion="politica">
+          <span class="nc-media"><img src="assets/noticias/oro-argentino-conferencia-economia.jpg" alt="" loading="lazy"></span>
+          <span class="nc-body">
+            <span class="nc-meta"><span class="nc-sec">Política</span><span class="nc-date">19 oct 2026</span></span>
+            <span class="nc-title">El oro argentino, pérdidas millonarias y un banco amigo del Gobierno</span>
+            
+          </span>
+        </a>
+        <a class="nc" href="noticias/boca-y-estudiantes-van-por-la-gloria-argentina-tendra-finalistas-en-las-dos-copas.html" data-seccion="deportes">
+          <span class="nc-media"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1F_G6oFJCElTwxtgrG24U1ZKJ6ELT8UX6VFLfczg9pMEFoNEielCt4PQ&amp;s=10" alt="" loading="lazy"></span>
+          <span class="nc-body">
+            <span class="nc-meta"><span class="nc-sec">Deportes</span><span class="nc-date">25 oct 2026</span></span>
+            <span class="nc-title">Boca y Estudiantes van por la gloria: Argentina tendrá finalistas en las dos copas</span>
+            
+          </span>
+        </a>
+        <a class="nc" href="noticias/donde-se-chicha-el-finde.html" data-seccion="agenda">
+          <span class="nc-media nc-media--empty" aria-hidden="true"><span>Agenda</span></span>
+          <span class="nc-body">
+            <span class="nc-meta"><span class="nc-sec">Agenda</span><span class="nc-date">19 oct 2026</span></span>
+            <span class="nc-title">¿Dónde se chicha el finde?</span>
+            
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-benefits">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Comunidad de Pasajerxs</p>
+        <h2>Beneficios para nuestra comunidad</h2>
+        <p>La Comunidad de Pasajerxs sostiene SUBE todos los meses. Sumándote, vos también sos parte y accedés a beneficios en una red de espacios amigos.</p>
+      </div>
+      <div class="home-benefits-grid">
+        <a class="home-benefit" href="comunidad.html#beneficios">
+          <span class="benefit-logo"><img src="assets/socios/planilla/puntoexe-informatica.webp" alt="" width="56" height="56" loading="lazy" decoding="async"></span>
+          <span class="home-benefit-text">
+            <span class="benefit-name">.exe informatica</span>
+            <span class="benefit-cat">Tecnología</span>
+            <span class="home-benefit-perk">15% de descuento en servicio técnico</span>
+          </span>
+        </a>
+        <a class="home-benefit" href="comunidad.html#beneficios">
+          <span class="benefit-logo"><img src="assets/socios/planilla/lamparas-aurora.webp" alt="" width="56" height="56" loading="lazy" decoding="async"></span>
+          <span class="home-benefit-text">
+            <span class="benefit-name">Aurora</span>
+            <span class="benefit-cat">Bazar/Deco</span>
+            <span class="home-benefit-perk">10% de descuento</span>
+          </span>
+        </a>
+        <a class="home-benefit" href="comunidad.html#beneficios">
+          <span class="benefit-logo"><img src="assets/socios/planilla/carpincho-indumentaria.webp" alt="" width="56" height="56" loading="lazy" decoding="async"></span>
+          <span class="home-benefit-text">
+            <span class="benefit-name">Carpincho</span>
+            <span class="benefit-cat">Indumentaria</span>
+            <span class="home-benefit-perk">10% de descuento</span>
+          </span>
+        </a>
+        <a class="home-benefit" href="comunidad.html#beneficios">
+          <span class="benefit-logo"><img src="assets/socios/planilla/casachicha-lp.webp" alt="" width="56" height="56" loading="lazy" decoding="async"></span>
+          <span class="home-benefit-text">
+            <span class="benefit-name">Casa Chicha</span>
+            <span class="benefit-cat">Producción cultural</span>
+            <span class="home-benefit-perk">10% de descuento en birras</span>
+          </span>
+        </a>
+      </div>
+      <div class="home-benefits-actions">
+        <a href="comunidad.html#beneficios" class="btn btn-ghost">Ver los 17 beneficios</a>
+        <a href="comunidad.html#asociate" class="btn btn-primary">Quiero ser pasajerx</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sponsors sponsors--compacto">
     <div class="wrap">
       <div class="sponsor-slots">
-        <a class="sponsor-slot sponsor-slot--banner" href="contacto.html">
-          <span class="sponsor-slot-label">Banner horizontal</span>
+        <a class="sponsor-slot sponsor-slot--banner sponsor-banner" href="comunidad.html#beneficios" aria-label="Sponsors oficiales: Roots Cooperativa, Refugio 62 y Tatana">
+          <img class="sponsor-banner-title" src="assets/sponsors/sponsors-oficiales-titulo.jpg" alt="" width="628" height="396" loading="lazy">
+          <span class="sponsor-banner-logos">
+            <img src="assets/sponsors/logo-roots-cooperativa.png" alt="Roots Cooperativa" loading="lazy">
+            <img src="assets/sponsors/logo-refugio-62.png" alt="Refugio 62" loading="lazy">
+            <img src="assets/sponsors/logo-tatana.png" alt="Tatana" loading="lazy">
+          </span>
         </a>
 
         <div class="sponsor-slot-row">
-          <a class="sponsor-slot sponsor-slot--square" href="contacto.html">
-            <span class="sponsor-slot-label">Cuadrado</span>
+          <a class="sponsor-slot sponsor-slot--square sponsor-slot--image sponsor-slot--logo" href="contacto.html">
+            <img src="assets/sponsors/cuadrado-roots.webp" alt="Roots Cooperativa" width="357" height="357" loading="lazy">
           </a>
-          <a class="sponsor-slot sponsor-slot--square" href="contacto.html">
-            <span class="sponsor-slot-label">Cuadrado</span>
+          <a class="sponsor-slot sponsor-slot--square sponsor-slot--image sponsor-slot--logo" href="contacto.html">
+            <img src="assets/sponsors/cuadrado-mascaro.webp" alt="Librería Mascaró" width="640" height="640" loading="lazy">
           </a>
-          <a class="sponsor-slot sponsor-slot--square" href="contacto.html">
-            <span class="sponsor-slot-label">Cuadrado</span>
+          <a class="sponsor-slot sponsor-slot--square sponsor-slot--image sponsor-slot--logo" href="contacto.html">
+            <img src="assets/sponsors/cuadrado-casa-chicha.webp" alt="Casa Chicha" width="639" height="640" loading="lazy">
           </a>
         </div>
       </div>

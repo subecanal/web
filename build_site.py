@@ -15,6 +15,7 @@ PROGRAMS más abajo.
 import os
 import html
 import re
+import sys
 
 ROOT = os.path.dirname(__file__)
 
@@ -41,18 +42,28 @@ BURGER_ICON = '''<svg viewBox="0 0 24 24" width="20" height="20" fill="none" str
 NAV_ITEMS = [
     ("comunidad", "Comunidad", "comunidad.html"),
     ("contenidos", "Contenidos", "contenidos.html"),
+    ("noticias", "Noticias", "noticias.html"),
     ("tienda", "Tienda", "tienda.html"),
     ("contacto", "Contacto", "contacto.html"),
+    ("mipase", "Mi pase", "mi-pase.html"),
+    ("redaccion", "Redacción", "redaccion/"),
 ]
+
+# Pestaña «Redacción» en el menú. En la web de prueba queda a la vista para
+# probar el panel; en la web oficial va en False (el panel sigue andando en
+# subecanal.com.ar/redaccion, pero sin ningún botón que lleve ahí).
+REDACCION_EN_MENU = True
 
 # Secciones ocultas al público por ahora. Para volver a mostrar una,
 # sacala de esta lista y regenerá el sitio (python3 build_site.py):
 # vuelven su link en el menú, sus accesos y su página completa.
 # Mientras está oculta, su página redirige a la Home y no aparece en Google.
-SECCIONES_OCULTAS = {"noticias", "tienda"}
+SECCIONES_OCULTAS = {"tienda"}
 
 
 def visible(seccion):
+    if seccion == "redaccion":
+        return REDACCION_EN_MENU
     return seccion not in SECCIONES_OCULTAS
 
 
@@ -66,7 +77,12 @@ def nav_links_html(depth, active):
     for key, label, href in NAV_ITEMS:
         if not visible(key):
             continue
-        cls = ' class="is-current"' if key == active else ""
+        classes = []
+        if key == active:
+            classes.append("is-current")
+        if key == "mipase":
+            classes.append("nav-pass")
+        cls = ' class="{}"'.format(" ".join(classes)) if classes else ""
         links.append('<a href="{u}{href}"{cls}>{label}</a>'.format(u=up(depth), href=href, cls=cls, label=label))
     return "\n      ".join(links)
 
@@ -74,7 +90,7 @@ def nav_links_html(depth, active):
 def header_html(depth, active):
     return '''<header class="site-header">
   <div class="wrap">
-    <div class="header-weather" id="header-weather" aria-live="polite" hidden></div>
+    <div class="header-weather" id="header-weather" role="group" hidden></div>
     <a href="{u}index.html" class="brand"><img src="{u}assets/logo.png" alt="Sube Canal" width="269" height="104"></a>
     <nav class="nav-links" id="nav-links">
       {links}
@@ -107,7 +123,7 @@ def footer_html(depth):
 </footer>'''.format(u=u, mail=MAIL_ICON, ig=IG_ICON_16, tiktok=TIKTOK_ICON, x=X_ICON, yt=YOUTUBE_ICON)
 
 
-def page_html(title, description, body, depth, active, extra_scripts=None, body_id=None):
+def page_html(title, description, body, depth, active, extra_scripts=None, body_id=None, noindex=False):
     extra_scripts = extra_scripts or []
     scripts = "\n".join('<script src="{u}assets/{s}"></script>'.format(u=up(depth), s=s) for s in extra_scripts)
     return '''<!DOCTYPE html>
@@ -116,8 +132,11 @@ def page_html(title, description, body, depth, active, extra_scripts=None, body_
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title}</title>
-<meta name="description" content="{description}">
+<meta name="description" content="{description}">{robots}
 <link rel="icon" href="{u}assets/logo.png">
+<link rel="manifest" href="{u}mi-pase.webmanifest">
+<link rel="apple-touch-icon" href="{u}assets/icono-192.png">
+<meta name="theme-color" content="#0b0b0b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="{u}assets/fonts/Anton-Regular.woff2" as="font" type="font/woff2" crossorigin>
@@ -142,6 +161,7 @@ def page_html(title, description, body, depth, active, extra_scripts=None, body_
 '''.format(
         title=title,
         description=description,
+        robots='\n<meta name="robots" content="noindex, nofollow">' if noindex else "",
         u=up(depth),
         header=header_html(depth, active),
         body_id_attr=(' id="' + body_id + '"') if body_id else "",
@@ -164,13 +184,12 @@ def write(path, html):
 # ============================================================
 LIVE_PLAYLIST_ID = "PLYT7ujTIBmWat3a4FBqiq8kWbAD_kybd5"
 
-HOME_BODY = '''{franja_programas}  <section class="hero">
+HOME_BODY = '''{franja_programas}  <section class="hero hero--portada">
     <div class="wrap">
-      <div>
+      <div class="hero-text">
         <h1>Subite a este<br><span class="accent">viaje colectivo</span></h1>
         <div class="hero-sub">
           <p>Somos un canal platense hecho a pulmón. Creamos contenidos, generamos encuentros y construimos comunidad alrededor de la cultura local.</p>
-          <p>La Comunidad de Pasajerxs sostiene SUBE todos los meses. Sumándote, vos también sos parte y accedés a beneficios en una red de espacios amigos.</p>
         </div>
         <div class="hero-actions">
           <a href="comunidad.html#asociate" class="btn btn-primary">Quiero ser pasajerx</a>
@@ -179,6 +198,8 @@ HOME_BODY = '''{franja_programas}  <section class="hero">
       </div>
 
       <div class="hero-player">
+        <div class="next-stop" id="next-stop" aria-live="polite" data-perfiles="{perfiles}" hidden></div>
+
         <p class="hero-player-label">Último programa</p>
         <div class="video-embed">
           <iframe
@@ -189,28 +210,31 @@ HOME_BODY = '''{franja_programas}  <section class="hero">
             allowfullscreen>
           </iframe>
         </div>
-
-        <div class="next-stop" id="next-stop" aria-live="polite" data-perfiles="{perfiles}" hidden></div>
       </div>
     </div>
   </section>
 
-{noticias_destacadas}  <section class="sponsors">
+{noticias_destacadas}{beneficios_home}  <section class="sponsors sponsors--compacto">
     <div class="wrap">
       <div class="sponsor-slots">
-        <a class="sponsor-slot sponsor-slot--banner" href="contacto.html">
-          <span class="sponsor-slot-label">Banner horizontal</span>
+        <a class="sponsor-slot sponsor-slot--banner sponsor-banner" href="comunidad.html#beneficios" aria-label="Sponsors oficiales: Roots Cooperativa, Refugio 62 y Tatana">
+          <img class="sponsor-banner-title" src="assets/sponsors/sponsors-oficiales-titulo.jpg" alt="" width="628" height="396" loading="lazy">
+          <span class="sponsor-banner-logos">
+            <img src="assets/sponsors/logo-roots-cooperativa.png" alt="Roots Cooperativa" loading="lazy">
+            <img src="assets/sponsors/logo-refugio-62.png" alt="Refugio 62" loading="lazy">
+            <img src="assets/sponsors/logo-tatana.png" alt="Tatana" loading="lazy">
+          </span>
         </a>
 
         <div class="sponsor-slot-row">
-          <a class="sponsor-slot sponsor-slot--square" href="contacto.html">
-            <span class="sponsor-slot-label">Cuadrado</span>
+          <a class="sponsor-slot sponsor-slot--square sponsor-slot--image sponsor-slot--logo" href="contacto.html">
+            <img src="assets/sponsors/cuadrado-roots.webp" alt="Roots Cooperativa" width="357" height="357" loading="lazy">
           </a>
-          <a class="sponsor-slot sponsor-slot--square" href="contacto.html">
-            <span class="sponsor-slot-label">Cuadrado</span>
+          <a class="sponsor-slot sponsor-slot--square sponsor-slot--image sponsor-slot--logo" href="contacto.html">
+            <img src="assets/sponsors/cuadrado-mascaro.webp" alt="Librería Mascaró" width="640" height="640" loading="lazy">
           </a>
-          <a class="sponsor-slot sponsor-slot--square" href="contacto.html">
-            <span class="sponsor-slot-label">Cuadrado</span>
+          <a class="sponsor-slot sponsor-slot--square sponsor-slot--image sponsor-slot--logo" href="contacto.html">
+            <img src="assets/sponsors/cuadrado-casa-chicha.webp" alt="Casa Chicha" width="639" height="640" loading="lazy">
           </a>
         </div>
       </div>
@@ -218,26 +242,38 @@ HOME_BODY = '''{franja_programas}  <section class="hero">
   </section>
 '''
 
-# "Noticias destacadas" de la Home: se muestra solo si la sección Noticias
-# está visible (ver SECCIONES_OCULTAS).
+# Franja de la Comunidad en la Home: algunos comercios de la planilla (en el
+# orden de la planilla) y el camino para asociarse. Cuántos se muestran:
+BENEFICIOS_HOME_CANTIDAD = 4
+
+BENEFICIOS_HOME = '''  <section class="home-benefits">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Comunidad de Pasajerxs</p>
+        <h2>Beneficios para nuestra comunidad</h2>
+        <p>La Comunidad de Pasajerxs sostiene SUBE todos los meses. Sumándote, vos también sos parte y accedés a beneficios en una red de espacios amigos.</p>
+      </div>
+      <div class="home-benefits-grid">
+{cards}
+      </div>
+      <div class="home-benefits-actions">
+        <a href="comunidad.html#beneficios" class="btn btn-ghost">Ver los {total} beneficios</a>
+        <a href="comunidad.html#asociate" class="btn btn-primary">Quiero ser pasajerx</a>
+      </div>
+    </div>
+  </section>
+
+'''
+
+# "Noticias destacadas" de la Home: las 3 primeras notas de Noticias.
 NOTICIAS_DESTACADAS = '''  <section class="featured-news">
     <div class="wrap">
       <div class="section-head">
         <h2>Noticias destacadas</h2>
+        <a class="section-head-link" href="noticias.html">Ver todas las noticias →</a>
       </div>
-      <div class="news-grid">
-        <a class="news-card" href="noticias.html">
-          <span class="news-tag">Noticia destacada</span>
-          <span class="news-title">¿Dónde está Adorni?</span>
-        </a>
-        <a class="news-card" href="noticias.html">
-          <span class="news-tag">Noticia destacada</span>
-          <span class="news-title">El campeón de la liga amateur platense</span>
-        </a>
-        <a class="news-card" href="noticias.html">
-          <span class="news-tag">Noticia destacada</span>
-          <span class="news-title">¿Dónde se chicha el finde?</span>
-        </a>
+      <div class="news-list news-list--home">
+{featured_news}
       </div>
     </div>
   </section>
@@ -268,7 +304,7 @@ BENEFIT_CARDS = [
 def benefit_card_html(slug, initial, name, cat, perks, ig, ubicacion=None):
     perks_html = "".join("<li>{}</li>".format(p) for p in perks)
     loc_attr = ' data-location="{}"'.format(ubicacion) if ubicacion else ""
-    return '''        <article class="benefit-card"{loc_attr}>
+    return '''        <article class="benefit-card" data-rubro="{rubro_key}"{loc_attr}>
           <div class="benefit-top">
             <div class="benefit-logo mono" data-slug="{slug}" data-name="{name}">{initial}</div>
             <div>
@@ -282,7 +318,8 @@ def benefit_card_html(slug, initial, name, cat, perks, ig, ubicacion=None):
           <div class="benefit-foot">
             <a class="benefit-ig" href="https://www.instagram.com/{ig}/" target="_blank" rel="noopener">{icon}<span>@{ig}</span></a>
           </div>
-        </article>'''.format(slug=slug, name=name, initial=initial, cat=cat, perks=perks_html, ig=ig, icon=IG_ICON, loc_attr=loc_attr)
+        </article>'''.format(slug=slug, name=name, initial=initial, cat=cat, perks=perks_html, ig=ig, icon=IG_ICON, loc_attr=loc_attr,
+                             rubro_key=_slug_rubro(cat))
 
 
 # Geolocalización de comercios ("Ver qué tan cerca están"): apagada por
@@ -308,9 +345,13 @@ def comercios_planilla():
 def benefit_card_from_sheet(c):
     e = html.escape
     nombre = c["nombre"]
-    logo_path = "assets/socios/planilla/{}.webp".format(c["slug"])
-    if os.path.exists(os.path.join(ROOT, logo_path)):
-        logo = '<div class="benefit-logo"><img src="{}" alt="{}" width="68" height="68" loading="lazy" decoding="async"></div>'.format(e(logo_path), e(nombre))
+    logo_path = c["logo"] if "logo" in c else "assets/socios/planilla/{}.webp".format(c["slug"])
+    if logo_path and os.path.exists(os.path.join(ROOT, logo_path)):
+        # ?v=… cambia cuando cambia el archivo: el navegador no sigue mostrando el logo viejo
+        import hashlib
+        with open(os.path.join(ROOT, logo_path), "rb") as fh:
+            version = hashlib.md5(fh.read()).hexdigest()[:8]
+        logo = '<div class="benefit-logo"><img src="{}?v={}" alt="{}" width="68" height="68" loading="lazy" decoding="async"></div>'.format(e(logo_path), version, e(nombre))
     else:
         logo = '<div class="benefit-logo mono" data-slug="{}" data-name="{}">{}</div>'.format(
             e(c.get("instagram") or c["slug"]), e(nombre), e(nombre[:1].upper()))
@@ -319,7 +360,7 @@ def benefit_card_from_sheet(c):
     foot = ('<a class="benefit-ig" href="https://www.instagram.com/{0}/" target="_blank" rel="noopener">{1}<span>@{0}</span></a>'.format(e(ig), IG_ICON)
             if ig else "")
     loc = ' data-location="{}"'.format(e(c["ubicacion"])) if c.get("ubicacion") else ""
-    return """        <article class="benefit-card"{loc}>
+    return """        <article class="benefit-card" data-rubro="{rubro_key}"{loc}>
           <div class="benefit-top">
             {logo}
             <div>
@@ -333,14 +374,79 @@ def benefit_card_from_sheet(c):
           <div class="benefit-foot">
             {foot}
           </div>
-        </article>""".format(loc=loc, logo=logo, nombre=e(nombre), rubro=e(c.get("rubro", "")), perks=perks, foot=foot)
+        </article>""".format(loc=loc, logo=logo, nombre=e(nombre), rubro=e(c.get("rubro", "")), perks=perks, foot=foot,
+                             rubro_key=e(_slug_rubro(c.get("rubro", ""))))
+
+
+def _slug_rubro(rubro):
+    import unicodedata
+    t = unicodedata.normalize("NFD", rubro or "").encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", t).strip("-")
+
+
+def comercios_adheridos():
+    """Lista de comercios con beneficios: [(nombre, rubro, [beneficios], html_logo)].
+    Sale de la planilla; si no hay copia de la planilla, de la lista de respaldo."""
+    comercios = comercios_planilla()
+    if comercios:
+        return [c for c in comercios if c.get("tipo") != "auspiciante"]
+    return None
 
 
 def benefit_cards_html():
-    comercios = comercios_planilla()
+    comercios = comercios_adheridos()
     if comercios:
-        return "\n\n".join(benefit_card_from_sheet(c) for c in comercios if c.get("tipo") != "auspiciante")
+        return "\n\n".join(benefit_card_from_sheet(c) for c in comercios)
     return "\n\n".join(benefit_card_html(*c) for c in BENEFIT_CARDS)
+
+
+def rubros_html():
+    """Botones para filtrar los beneficios por rubro (los rubros salen de la
+    planilla, ordenados del que más comercios tiene al que menos)."""
+    comercios = comercios_adheridos()
+    rubros = [c.get("rubro", "") for c in comercios] if comercios else [c[3] for c in BENEFIT_CARDS]
+    cuenta = {}
+    for r in rubros:
+        if r:
+            cuenta[r] = cuenta.get(r, 0) + 1
+    if len(cuenta) < 2:
+        return ""
+    orden = sorted(cuenta, key=lambda r: (-cuenta[r], r.lower()))
+    chips = ['<button type="button" class="news-chip is-active" data-rubro="" aria-pressed="true">Todos <span>{}</span></button>'.format(len(rubros))]
+    chips += ['<button type="button" class="news-chip" data-rubro="{}" aria-pressed="false">{} <span>{}</span></button>'.format(
+        html.escape(_slug_rubro(r)), html.escape(r), cuenta[r]) for r in orden]
+    return ('      <div class="benefit-filters" id="benefit-filters" role="group" aria-label="Filtrar beneficios por rubro">\n        '
+            + "\n        ".join(chips) + "\n      </div>\n")
+
+
+def total_beneficios():
+    comercios = comercios_adheridos()
+    return len(comercios) if comercios else len(BENEFIT_CARDS)
+
+
+def beneficios_home_html():
+    """Tarjetas chicas de la franja de la Home (los primeros comercios de la planilla)."""
+    e = html.escape
+    comercios = comercios_adheridos()
+    if not comercios:
+        return ""
+    cards = []
+    for c in comercios[:BENEFICIOS_HOME_CANTIDAD]:
+        logo_path = c["logo"] if "logo" in c else "assets/socios/planilla/{}.webp".format(c["slug"])
+        if logo_path and os.path.exists(os.path.join(ROOT, logo_path)):
+            logo = '<span class="benefit-logo"><img src="{}" alt="" width="56" height="56" loading="lazy" decoding="async"></span>'.format(e(logo_path))
+        else:
+            logo = '<span class="benefit-logo mono" aria-hidden="true">{}</span>'.format(e(c["nombre"][:1].upper()))
+        perk = (c.get("beneficios") or [""])[0]
+        cards.append("""        <a class="home-benefit" href="comunidad.html#beneficios">
+          {logo}
+          <span class="home-benefit-text">
+            <span class="benefit-name">{nombre}</span>
+            <span class="benefit-cat">{rubro}</span>
+            <span class="home-benefit-perk">{perk}</span>
+          </span>
+        </a>""".format(logo=logo, nombre=e(c["nombre"]), rubro=e(c.get("rubro", "")), perk=e(perk)))
+    return BENEFICIOS_HOME.format(cards="\n".join(cards), total=total_beneficios())
 
 
 COMUNIDAD_BODY = '''  <section class="benefits" id="beneficios">
@@ -350,17 +456,19 @@ COMUNIDAD_BODY = '''  <section class="benefits" id="beneficios">
         <p>Espacios amigos que suman descuentos exclusivos para quienes sostienen a SUBE. Mostrá tu carnet de pasajerx y viajá con beneficios.</p>
       </div>
 
-      <div class="carousel">
-        <button class="carousel-arrow carousel-arrow--prev" type="button" aria-label="Ver beneficios anteriores">{arrow_left}</button>
+      <ol class="pasos" aria-label="Cómo funciona">
+        <li><span class="paso-num" aria-hidden="true">1</span><span class="paso-text"><strong>Asociate</strong>Elegí tu aporte y sumate a la Comunidad de Pasajerxs. <a href="#asociate">Ver aportes</a></span></li>
+        <li><span class="paso-num" aria-hidden="true">2</span><span class="paso-text"><strong>Activá tu pase</strong>Si aportás a la comunidad, ya estás en la lista: no hace falta registrarte. <a href="mi-pase.html">Ir a Mi pase</a></span></li>
+        <li><span class="paso-num" aria-hidden="true">3</span><span class="paso-text"><strong>Mostralo</strong>Mostrá tu pase en los comercios adheridos y usá el beneficio.</span></li>
+      </ol>
 
-        <div class="benefit-grid" id="benefit-grid" data-fallback="true">
+{rubros}      <div class="benefit-grid benefit-grid--lista" id="benefit-grid" data-fallback="true">
 
 {cards}
 
-        </div>
-
-        <button class="carousel-arrow carousel-arrow--next" type="button" aria-label="Ver más beneficios">{arrow_right}</button>
       </div>
+      <p class="benefit-empty" id="benefit-empty" hidden>No hay beneficios en este rubro todavía.</p>
+      <button class="btn btn-ghost benefit-more" id="benefit-more" type="button" hidden>Ver los {total} beneficios</button>
 
 {{boton_ubicacion}}
       <p class="benefits-note">Los descuentos y condiciones de cada beneficio son definidos por cada espacio adherido y pueden cambiar sin aviso previo.</p>
@@ -369,13 +477,13 @@ COMUNIDAD_BODY = '''  <section class="benefits" id="beneficios">
         <span class="raffle-icon" aria-hidden="true">{ticket}</span>
         <div class="raffle-text">
           <p class="raffle-eyebrow">Todos los meses</p>
-          <h3>Sorteos mensuales</h3>
+          <h3>Sorteos exclusivos para pasajerxs</h3>
           <p>En SUBE Canal hacemos sorteos todos los meses.</p>
         </div>
         <a class="btn btn-ghost raffle-btn" href="https://www.instagram.com/subecanal" target="_blank" rel="noopener">{ig} Seguinos en Instagram</a>
       </div>
 
-      <a class="partner-cta" href="mailto:laplatasube@gmail.com?subject=Quiero%20sumar%20mi%20comercio%20a%20SUBE">
+      <a class="partner-cta" href="comercios.html">
         <span class="partner-cta-title">¿Tenés un comercio o espacio en La Plata?</span>
         <span class="partner-cta-desc">Si querés formar parte de esta red, contactate con nosotros y nuestro equipo comercial te estará respondiendo.</span>
       </a>
@@ -416,9 +524,34 @@ COMUNIDAD_BODY = '''  <section class="benefits" id="beneficios">
 
       </div>
 
+      <div class="faq" id="preguntas">
+        <h3>Preguntas frecuentes</h3>
+        <details class="faq-item">
+          <summary>¿Cómo uso los beneficios?{chevron}</summary>
+          <div class="faq-body"><p>Entrá a <a href="mi-pase.html">Mi pase</a> y mostrá esa pantalla en los comercios adheridos. La hora corre en vivo: una captura de pantalla no sirve.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Tengo que registrarme para tener Mi pase?{chevron}</summary>
+          <div class="faq-body"><p>No. Si aportás a la Comunidad de Pasajerxs, ya estás en la lista: activás tu cuenta desde <a href="mi-pase.html">Mi pase</a> con el mail de tu suscripción.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Puedo cancelar mi aporte mensual?{chevron}</summary>
+          <div class="faq-body"><p>Sí. La suscripción mensual es vía Mercado Pago y podés cancelarla cuando quieras.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Los beneficios son siempre los mismos?{chevron}</summary>
+          <div class="faq-body"><p>Los descuentos y condiciones de cada beneficio son definidos por cada espacio adherido y pueden cambiar sin aviso previo.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>Tengo un comercio, ¿cómo me sumo?{chevron}</summary>
+          <div class="faq-body"><p>Mirá cómo funciona y escribinos desde <a href="comercios.html">Sumá tu comercio</a>.</p></div>
+        </details>
+      </div>
+
       <details class="email-help">
         <summary>
-          <span>¿Necesitás cambiar el mail asociado a tu suscripción?</span>
+          <span class="email-help-icon" aria-hidden="true">✉</span>
+          <span class="email-help-title">¿No te llegan nuestros correos? Revisá el mail de tu suscripción</span>
           {chevron}
         </summary>
         <div class="email-help-body">
@@ -444,6 +577,8 @@ COMUNIDAD_BODY = '''  <section class="benefits" id="beneficios">
   </section>
 '''.format(
     cards=benefit_cards_html(),
+    rubros=rubros_html(),
+    total=total_beneficios(),
     chevron=CHEVRON_ICON,
     arrow_left=ARROW_LEFT_ICON,
     arrow_right=ARROW_RIGHT_ICON,
@@ -486,12 +621,10 @@ GRILLA_RESPALDO = '''      <div class="content-schedule" id="content-schedule">
             <li>
               <span class="schedule-time">19:30</span>
               <a href="programas/estacion-freak.html">Estación Freak</a>
-              <span class="schedule-alt">Cada dos semanas, alterna con ¿De qué viven?</span>
             </li>
             <li>
               <span class="schedule-time">20:00</span>
               <a href="programas/de-que-viven.html">¿De qué viven?</a>
-              <span class="schedule-alt">Cada dos semanas, alterna con Estación Freak</span>
             </li>
             <li>
               <span class="schedule-time">21:30</span>
@@ -529,13 +662,13 @@ GRILLA_RESPALDO = '''      <div class="content-schedule" id="content-schedule">
 
 # Bloque "Noticias" de Contenidos: se muestra solo si Noticias está visible.
 BLOQUE_NOTICIAS = '''      <div class="content-subhead content-subhead--noticias">
-        <span class="content-subhead-eyebrow">Próximamente</span>
+        <span class="content-subhead-eyebrow">Redacción SUBE</span>
         <h3>Noticias</h3>
       </div>
 
       <a class="hub-card" href="noticias.html">
         <span class="hub-card-title">Coberturas, notas y actualidad</span>
-        <span class="hub-card-desc">Estamos preparando esta sección — todavía no tiene contenido cargado.</span>
+        <span class="hub-card-desc">La parte informativa de SUBE: lo que pasa en La Plata y en el país, contado por nuestra redacción.</span>
         <span class="hub-card-arrow">→</span>
       </a>
 
@@ -556,18 +689,492 @@ CONTENIDOS_BODY = '''  <section class="content">
       </div>
 
 {grilla}
+{programas}
 {bloque_noticias}'''
 
-NOTICIAS_BODY = '''  <section class="soon">
+# ============================================================
+# NOTICIAS (noticias.html + noticias/*.html)
+# ============================================================
+# Cada nota es un archivo de texto dentro de la carpeta redaccion/.
+# El formato está explicado en redaccion/ayuda/LEEME.md y hay una plantilla
+# lista para copiar en redaccion/_plantilla.txt. Los archivos que
+# empiezan con "_" o que no terminan en .txt se ignoran.
+NEWS_SOURCE_DIR = os.path.join(ROOT, "redaccion")
+NEWS_DEFAULT_AUTHOR = "Redacción SUBE"
+MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+         "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+WHATSAPP_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20l1.2-4.2A8.5 8.5 0 1 1 20 11.5z"></path></svg>'
+LINK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>'
+
+SI = ("si", "sí", "yes", "true", "1")
+
+
+AVISOS = []
+
+
+def avisar(msg):
+    """Problemas que no frenan la generación del sitio, pero que la
+    revisión automática de GitHub marca como error (ver --revisar)."""
+    if msg not in AVISOS:
+        AVISOS.append(msg)
+        print("AVISO: " + msg)
+
+
+def _meta_decap(raw, path):
+    """Notas .md que guarda el panel de redacción (Decap): encabezado YAML
+    entre dos líneas '---' y debajo el cuerpo en Markdown."""
+    import yaml
+    m = re.match(r"^---\s*\n(.*?)\n---\s*(?:\n|$)(.*)$", raw, re.S)
+    if not m:
+        raise SystemExit("ERROR en redaccion/{}: falta el encabezado de la nota.".format(os.path.basename(path)))
+    datos = yaml.safe_load(m.group(1)) or {}
+    meta = {}
+    for k, v in datos.items():
+        if isinstance(v, bool):
+            v = "si" if v else "no"
+        elif v is None:
+            v = ""
+        elif hasattr(v, "isoformat"):
+            v = v.isoformat()[:10]
+        meta[_slugify(str(k))] = str(v).strip()
+    img = meta.get("imagen", "")
+    if img and not img.startswith("http"):
+        meta["imagen"] = re.sub(r"^/?(assets/noticias/)?", "", img)
+    return meta, m.group(2)
+
+
+def parse_note(path):
+    """Lee un archivo de redaccion/ y devuelve un diccionario con la nota."""
+    with open(path, encoding="utf-8") as f:
+        raw = f.read().replace("\r\n", "\n")
+    if path.endswith(".md"):
+        meta, body = _meta_decap(raw, path)
+        return _armar_nota(meta, body, path)
+    if "\n---" in raw:
+        head, body = raw.split("\n---", 1)
+        body = body.split("\n", 1)[1] if "\n" in body else ""
+    else:
+        head, body = raw, ""
+    meta = {}
+    for line in head.split("\n"):
+        if ":" in line and not line.strip().startswith("#"):
+            key, value = line.split(":", 1)
+            meta[_slugify(key.strip())] = value.strip()
+    return _armar_nota(meta, body, path)
+
+
+JERARQUIAS = ("principal", "destacada", "normal")
+
+
+def _jerarquia(meta):
+    """Lugar de la nota en la portada de Noticias y en la home:
+    'principal' (la grande de arriba), 'destacada' o 'normal'.
+    Las notas viejas con 'destacada: si' cuentan como destacadas."""
+    j = _slugify(meta.get("jerarquia", ""))
+    if j in JERARQUIAS:
+        return j
+    return "destacada" if meta.get("destacada", "").lower() in SI else "normal"
+
+
+def _armar_nota(meta, body, path):
+    name = os.path.splitext(os.path.basename(path))[0]
+    if not meta.get("titulo"):
+        raise SystemExit("ERROR en redaccion/{}: falta la línea 'titulo:'".format(os.path.basename(path)))
+    fecha = meta.get("fecha", "")
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", fecha):
+        raise SystemExit("ERROR en redaccion/{}: la fecha tiene que tener el formato AAAA-MM-DD (por ejemplo 2026-10-19)".format(os.path.basename(path)))
+    if meta.get("video") and not youtube_id(meta["video"]):
+        avisar("la nota '{}' tiene un video que no es un link de YouTube: no se muestra.".format(os.path.basename(path)))
+    return {
+        "slug": _slugify(meta.get("slug") or re.sub(r"^\d{4}-\d{2}-\d{2}-?", "", name)) or "nota",
+        "titulo": meta["titulo"],
+        "seccion": meta.get("seccion") or "Actualidad",
+        "bajada": meta.get("bajada", ""),
+        "autor": meta.get("autor") or NEWS_DEFAULT_AUTHOR,
+        "fecha": fecha,
+        "imagen": meta.get("imagen", ""),
+        "epigrafe": meta.get("epigrafe", ""),
+        "video": meta.get("video", ""),
+        # La portada es el video si así se eligió, o si hay video y no hay foto
+        "portada_video": bool(youtube_id(meta.get("video"))) and (
+            _slugify(meta.get("portada", "")).startswith("video") or not meta.get("imagen")),
+        "jerarquia": _jerarquia(meta),
+        "publicar": meta.get("publicar", "si").lower() in SI,
+        "cuerpo": body.strip(),
+    }
+
+
+def load_news():
+    """Todas las notas publicables, de la más nueva a la más vieja."""
+    if not os.path.isdir(NEWS_SOURCE_DIR):
+        return []
+    notes = []
+    for fname in sorted(os.listdir(NEWS_SOURCE_DIR)):
+        if fname.startswith("_") or not (fname.endswith(".txt") or fname.endswith(".md")) or fname.upper().startswith("LEEME"):
+            continue
+        note = parse_note(os.path.join(NEWS_SOURCE_DIR, fname))
+        if note["publicar"]:
+            notes.append(note)
+    notes.sort(key=lambda n: (n["fecha"], n["slug"]), reverse=True)
+    # Solo la principal más nueva va arriba; las principales anteriores
+    # pasan a contar como destacadas.
+    principales = [n for n in notes if n["jerarquia"] == "principal"]
+    for n in principales[1:]:
+        n["jerarquia"] = "destacada"
+    notes.sort(key=lambda n: JERARQUIAS.index(n["jerarquia"]))  # estable: mantiene la fecha
+    seen = set()
+    for n in notes:
+        if n["slug"] in seen:
+            raise SystemExit("ERROR: hay dos notas con la misma dirección '{}'. Cambiale el nombre a una de las dos.".format(n["slug"]))
+        seen.add(n["slug"])
+    return notes
+
+
+def fecha_larga(iso):
+    y, m, d = (int(x) for x in iso.split("-"))
+    return "{} de {} de {}".format(d, MESES[m - 1], y)
+
+
+def fecha_corta(iso):
+    y, m, d = (int(x) for x in iso.split("-"))
+    return "{} {} {}".format(d, MESES[m - 1][:3], y)
+
+
+def _inline(text):
+    """Escapa el texto y aplica **negrita**, *cursiva* y [texto](link)."""
+    t = html.escape(text, quote=False)
+    t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
+    t = re.sub(r"(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)", r"<em>\1</em>", t)
+    t = re.sub(r"(?<![\w_])_(?!\s)(.+?)(?<!\s)_(?![\w_])", r"<em>\1</em>", t)
+
+    def link(m):
+        href = m.group(2).replace('"', "%22")
+        external = href.startswith("http")
+        attrs = ' target="_blank" rel="noopener"' if external else ""
+        return '<a href="{}"{}>{}</a>'.format(href, attrs, m.group(1))
+    return re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", link, t)
+
+
+def _src_relativa(src, depth):
+    if src.startswith("http"):
+        return src
+    return up(depth) + src.lstrip("/")
+
+
+def youtube_id(url):
+    """ID de un video de YouTube a partir de cualquier link habitual
+    (youtube.com/watch?v=, youtu.be/, /shorts/, /live/, /embed/). '' si no es."""
+    m = re.search(r"(?:youtube\.com/(?:watch\?(?:[^#\s]*&)?v=|shorts/|live/|embed/)|youtu\.be/)([A-Za-z0-9_-]{11})", str(url or ""))
+    return m.group(1) if m else ""
+
+
+def video_html(url, titulo=""):
+    vid = youtube_id(url)
+    if not vid:
+        return ""
+    return ('<div class="video-embed article-video"><iframe src="https://www.youtube-nocookie.com/embed/{}" title="{}" '
+            'loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" '
+            'allowfullscreen></iframe></div>').format(vid, html.escape(titulo or "Video de YouTube"))
+
+
+def body_to_html(body, depth=1):
+    """Convierte el cuerpo de la nota: párrafos separados por una línea en
+    blanco, '## ' para un intertítulo, '> ' para una cita destacada, listas
+    con '- ' o '1. ' e imágenes con ![epígrafe](foto)."""
+    blocks = [b.strip() for b in re.split(r"\n\s*\n", body) if b.strip()]
+    out = []
+    for b in blocks:
+        lineas = [l.rstrip() for l in b.split("\n")]
+        img = re.fullmatch(r"!\[([^\]]*)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)", b)
+        # Un link de YouTube solo en su párrafo (o como [texto](link)) se muestra como video
+        solo = re.fullmatch(r"<?(https?://\S+)>?|\[[^\]]*\]\((https?://[^)\s]+)\)", b.replace("\\_", "_"))
+        if solo and youtube_id(solo.group(1) or solo.group(2)):
+            out.append(video_html(solo.group(1) or solo.group(2)))
+        elif img:
+            alt = html.escape(img.group(1))
+            cap = "<figcaption>{}</figcaption>".format(alt) if alt else ""
+            out.append('<figure class="article-figure"><img src="{}" alt="{}" loading="lazy">{}</figure>'.format(
+                html.escape(_src_relativa(img.group(2), depth)), alt, cap))
+        elif re.match(r"^#{2,6} ", b):
+            out.append("<h2>{}</h2>".format(_inline(re.sub(r"^#{2,6} ", "", b).strip())))
+        elif b.startswith(">"):
+            text = " ".join(line.lstrip("> ").strip() for line in lineas)
+            out.append("<blockquote>{}</blockquote>".format(_inline(text)))
+        elif all(re.match(r"^\s*[-*+] ", l) for l in lineas):
+            out.append("<ul>{}</ul>".format("".join("<li>{}</li>".format(_inline(re.sub(r"^\s*[-*+] ", "", l))) for l in lineas)))
+        elif all(re.match(r"^\s*\d+[.)] ", l) for l in lineas):
+            out.append("<ol>{}</ol>".format("".join("<li>{}</li>".format(_inline(re.sub(r"^\s*\d+[.)] ", "", l))) for l in lineas)))
+        else:
+            partes = []
+            for l in lineas:
+                corte = l.endswith("\\") or l.endswith("  ")
+                partes.append(_inline(l.rstrip("\\").strip()) + ("<br>" if corte else " "))
+            out.append("<p>{}</p>".format("".join(partes).strip()))
+    return "\n        ".join(out)
+
+
+def _img_src(note, depth):
+    img = note["imagen"]
+    if not img:
+        return ""
+    if img.startswith("http"):
+        return img
+    if not os.path.isfile(os.path.join(ROOT, "assets", "noticias", img)):
+        avisar("la nota '{}' usa la imagen '{}', pero no está en assets/noticias/. "
+               "Se muestra sin foto hasta que la subas.".format(note["slug"], img))
+        return ""
+    return "{}assets/noticias/{}".format(up(depth), img)
+
+
+def news_url(note, depth):
+    return "{}noticias/{}.html".format(up(depth), note["slug"])
+
+
+def news_card_html(note, depth, lead=False):
+    e = html.escape
+    src = _img_src(note, depth)
+    play = ""
+    if note.get("portada_video"):
+        # Tarjeta con la miniatura del video (o la foto, si la hay) y un botón de play
+        src = src or "https://i.ytimg.com/vi/{}/hqdefault.jpg".format(youtube_id(note["video"]))
+        play = '<span class="nc-play" aria-hidden="true"></span>'
+    media = ('<span class="nc-media"><img src="{}" alt="" loading="lazy">{}</span>'.format(e(src), play)
+             if src else '<span class="nc-media nc-media--empty" aria-hidden="true"><span>{}</span></span>'.format(e(note["seccion"])))
+    bajada = '<span class="nc-bajada">{}</span>'.format(e(note["bajada"])) if note["bajada"] else ""
+    return '''<a class="nc{lead}" href="{url}" data-seccion="{sec_key}">
+          {media}
+          <span class="nc-body">
+            <span class="nc-meta"><span class="nc-sec">{sec}</span><span class="nc-date">{fecha}</span></span>
+            <span class="nc-title">{titulo}</span>
+            {bajada}
+          </span>
+        </a>'''.format(
+        lead=" nc--lead" if lead else "",
+        url=news_url(note, depth),
+        sec_key=e(_slugify(note["seccion"])),
+        media=media,
+        sec=e(note["seccion"]),
+        fecha=fecha_corta(note["fecha"]),
+        titulo=e(note["titulo"]),
+        bajada=bajada,
+    )
+
+
+def news_index_body(notes):
+    if not notes:
+        listing = '<p class="news-empty">Todavía no hay notas publicadas. Volvé pronto.</p>'
+        filters = ""
+    else:
+        sections = []
+        for n in notes:
+            if n["seccion"] not in sections:
+                sections.append(n["seccion"])
+        filters = ""
+        if len(sections) > 1:
+            chips = ['<button type="button" class="news-chip is-active" data-filter="">Todas</button>']
+            chips += ['<button type="button" class="news-chip" data-filter="{}">{}</button>'.format(
+                html.escape(_slugify(sec)), html.escape(sec)) for sec in sections]
+            filters = '<div class="news-filters" role="group" aria-label="Filtrar por sección">\n        {}\n      </div>'.format("\n        ".join(chips))
+        lead = news_card_html(notes[0], 0, lead=True)
+        rest = "\n        ".join(news_card_html(n, 0) for n in notes[1:])
+        listing = '''<div class="news-list" id="news-list">
+        {lead}
+        {rest}
+      </div>
+      <p class="news-empty" id="news-empty" hidden>No hay notas en esta sección todavía.</p>'''.format(lead=lead, rest=rest)
+
+    return '''  <section class="news-page">
     <div class="wrap">
-      <a class="back-link" href="contenidos.html">{back}Volver a Contenidos</a>
-      <div class="section-head">
-        <h2>Noticias</h2>
-        <p>Estamos preparando esta sección. Muy pronto vas a poder leer acá coberturas, notas y actualidad hecha por SUBE.</p>
+      <div class="news-page-head">
+        <span class="eyebrow">Redacción SUBE</span>
+        <h1>Noticias</h1>
+        <p>Actualidad, coberturas y notas desde La Plata.</p>
+      </div>
+      {filters}
+      {listing}
+    </div>
+  </section>
+'''.format(filters=filters, listing=listing)
+
+
+def news_article_body(note, notes):
+    e = html.escape
+    src = _img_src(note, 1)
+    figure = ""
+    video = video_html(note["video"], note["titulo"])
+    if note.get("portada_video"):
+        # El video ocupa el lugar de la foto principal, con el epígrafe debajo
+        caption = '<figcaption>{}</figcaption>'.format(e(note["epigrafe"])) if note["epigrafe"] else ""
+        figure = '<figure class="article-figure article-figure--video">{}{}</figure>'.format(video, caption)
+        video = ""
+    elif src:
+        caption = '<figcaption>{}</figcaption>'.format(e(note["epigrafe"])) if note["epigrafe"] else ""
+        figure = '<figure class="article-figure"><img src="{}" alt="{}">{}</figure>'.format(
+            e(src), e(note["epigrafe"] or note["titulo"]), caption)
+    if note["cuerpo"]:
+        body = body_to_html(note["cuerpo"])
+    else:
+        body = '<p class="article-pending">Esta nota está en redacción. Volvé pronto para leerla completa.</p>'
+    bajada = '<p class="article-bajada">{}</p>'.format(e(note["bajada"])) if note["bajada"] else ""
+
+    others = [n for n in notes if n["slug"] != note["slug"]]
+    same = [n for n in others if n["seccion"] == note["seccion"]]
+    more = (same + [n for n in others if n not in same])[:3]
+    more_html = ""
+    if more:
+        more_html = '''<aside class="article-more">
+        <h2>Seguí leyendo</h2>
+        <div class="news-list news-list--more">
+        {}
+        </div>
+      </aside>'''.format("\n        ".join(news_card_html(n, 1) for n in more))
+
+    return '''  <article class="article">
+    <div class="wrap">
+      <a class="back-link" href="../noticias.html">{back}Volver a Noticias</a>
+      <header class="article-head">
+        <p class="article-meta"><span class="nc-sec">{sec}</span><time datetime="{iso}">{fecha}</time></p>
+        <h1>{titulo}</h1>
+        {bajada}
+        <p class="article-byline">Por {autor}</p>
+      </header>
+      {figure}
+      {video}
+      <div class="article-body">
+        {body}
+      </div>
+      <div class="article-share" data-share>
+        <span>Compartir</span>
+        <a class="share-btn" data-share-to="whatsapp" href="#" target="_blank" rel="noopener">{wa}WhatsApp</a>
+        <a class="share-btn" data-share-to="x" href="#" target="_blank" rel="noopener">{x}X</a>
+        <button type="button" class="share-btn" data-share-to="copy">{link}<span>Copiar link</span></button>
+      </div>
+      {more}
+    </div>
+  </article>
+'''.format(
+        back=BACK_ICON,
+        sec=e(note["seccion"]),
+        iso=note["fecha"],
+        fecha=fecha_larga(note["fecha"]),
+        titulo=e(note["titulo"]),
+        bajada=bajada,
+        autor=e(note["autor"]),
+        figure=figure,
+        video=video,
+        body=body,
+        wa=WHATSAPP_ICON,
+        x=X_ICON,
+        link=LINK_ICON,
+        more=more_html,
+    )
+
+
+def home_featured_news_html(notes):
+    """Las 3 notas de 'Noticias destacadas' de la home, con foto: el mismo
+    orden de la portada de Noticias (principal, destacadas y después las
+    más nuevas). La primera va más grande."""
+    picked = notes[:3]
+    return "\n".join("        " + news_card_html(n, 0, lead=(i == 0)) for i, n in enumerate(picked))
+
+
+def write_news_articles(notes):
+    out_dir = os.path.join(ROOT, "noticias")
+    current = {n["slug"] + ".html" for n in notes}
+    # Borra páginas de notas que ya no existen (o que se despublicaron)
+    if os.path.isdir(out_dir):
+        for fname in os.listdir(out_dir):
+            if fname.endswith(".html") and fname not in current:
+                os.remove(os.path.join(out_dir, fname))
+                print("borrado:", "noticias/" + fname)
+    for n in notes:
+        desc = n["bajada"] or n["titulo"]
+        write(
+            "noticias/{}.html".format(n["slug"]),
+            page_html(
+                "{} · Noticias · SUBE".format(html.escape(n["titulo"])),
+                html.escape(desc),
+                news_article_body(n, notes),
+                depth=1,
+                active="noticias",
+                extra_scripts=["news.js"],
+            ),
+        )
+
+
+# ============================================================
+# MI PASE (mi-pase.html): socios, comercios y equipo Sube
+# ============================================================
+# La página es un "esqueleto": las pantallas las arma assets/mi-pase.js
+# y los datos los maneja assets/mi-pase-datos.js (hoy en modo
+# demostración; después se conecta a Supabase).
+AVISO_PRIVACIDAD = '''<h3>Aviso de privacidad de Mi pase</h3>
+<p><em>Borrador para revisar por el equipo de Sube.</em></p>
+<p><strong>Quién es responsable.</strong> Sube Canal (La Plata) es responsable de los datos que se usan en Mi pase. Podés escribirnos a <a href="mailto:laplatasube@gmail.com">laplatasube@gmail.com</a>.</p>
+<p><strong>Qué datos usamos.</strong> Tu nombre y apellido, tu mail, el estado de tu aporte a la Comunidad de pasajeros y la fecha hasta la que está vigente. No guardamos datos de tarjetas ni de pagos: los pagos se hacen en Mercado Pago.</p>
+<p><strong>Para qué.</strong> Para que puedas ingresar a tu cuenta, ver tu boleto y usar los beneficios de la comunidad.</p>
+<p><strong>Comercios adheridos.</strong> Los comercios de la red pueden buscarte por nombre y apellido para confirmar si estás al día. Solo ven la respuesta (al día o no), nunca tu mail ni otros datos. Sube registra qué comercio hizo cada verificación y cuándo, para cuidar el buen uso de la herramienta y conocer cómo se usan los beneficios.</p>
+<p><strong>Tus derechos.</strong> Podés pedir ver, corregir o borrar tus datos escribiéndonos al mail de arriba, según la Ley 25.326 de Protección de Datos Personales. La Agencia de Acceso a la Información Pública es el organismo de control de esta ley.</p>'''
+
+# Accesos no publicados (no figuran en el menú ni en ninguna página).
+# Quien tenga la dirección igual tiene que ingresar con su cuenta: lo que
+# protege los datos es el inicio de sesión, no que la dirección sea secreta.
+ACCESO_EQUIPO = "equipo-pqgywm1wqr.html"     # equipo de trabajo: credencial y portal
+ACCESO_GESTION = "gestion-chnqrjwuq6.html"   # administración del equipo Sube (finanzas)
+
+MI_PASE_BODY = '''  <section class="pase-page">
+    <div class="wrap">
+      <div class="pase-head">
+        <span class="eyebrow">{eyebrow}</span>
+        <h1>{titulo}</h1>
+        <p>{bajada}</p>
+      </div>
+
+      <div id="pase-app" class="pase-app" aria-live="polite" data-modo="{modo}" data-acceso-equipo="{acceso_equipo}">
+        <noscript><p class="pase-error">Para usar Mi pase necesitás tener JavaScript activado en el navegador.</p></noscript>
+      </div>
+
+      <template id="aviso-privacidad-texto">{aviso}</template>
+
+      <details class="pase-privacy-footer" id="privacidad">
+        <summary>Aviso de privacidad</summary>
+        <div class="pase-privacidad-body">{aviso}</div>
+      </details>
+    </div>
+  </section>
+'''
+
+
+def mi_pase_body(modo="publico"):
+    textos = {
+        "publico": ("Comunidad de pasajeros", "Mi pase",
+                    "Tu boleto para usar los beneficios de la comunidad, y la herramienta de verificación para los comercios adheridos."),
+        "equipo": ("Equipo de trabajo · SUBE", "Acceso del equipo",
+                   "Credencial y herramientas de trabajo para quienes integran SUBE."),
+        "admin": ("Administración · SUBE", "Gestión de Mi pase",
+                  "Comunidad de pasajeros, comercios adheridos y credenciales del equipo."),
+    }[modo]
+    return MI_PASE_BODY.format(eyebrow=textos[0], titulo=textos[1], bajada=textos[2], modo=modo,
+                               acceso_equipo=ACCESO_EQUIPO, aviso=AVISO_PRIVACIDAD)
+
+
+# Página pública que abre el código QR de las credenciales de la redacción.
+# No figura en el menú.
+CREDENCIAL_BODY = '''  <section class="pase-page">
+    <div class="wrap">
+      <div class="pase-head">
+        <span class="eyebrow">Equipo de trabajo · SUBE</span>
+        <h1>Verificar credencial</h1>
+        <p>Verificación de credenciales emitidas por SUBE a integrantes de su equipo de trabajo.</p>
+      </div>
+      <div id="cred-verif" class="cred-verif" aria-live="polite">
+        <p class="pase-loading">Verificando…</p>
+        <noscript><p class="pase-error">Para comprobar la credencial necesitás tener JavaScript activado.</p></noscript>
       </div>
     </div>
   </section>
-'''.format(back=BACK_ICON)
+'''
+
 
 TIENDA_BODY = '''  <section class="soon">
     <div class="wrap">
@@ -579,13 +1186,115 @@ TIENDA_BODY = '''  <section class="soon">
   </section>
 '''
 
-CONTACTO_BODY = '''  <section class="soon">
+CONTACTO_BODY = '''  <section class="soon contacto">
     <div class="wrap">
       <div class="section-head">
         <h2>Contacto</h2>
-        <p>Esta sección la vamos a ir completando. Mientras tanto, escribinos directamente:</p>
+        <p>Elegí el camino que más se parece a tu consulta.</p>
       </div>
-      <a class="btn btn-primary" href="mailto:laplatasube@gmail.com">Escribirnos por mail</a>
+
+      <div class="contacto-grid">
+        <div class="contacto-card">
+          <p class="eyebrow">Comunidad</p>
+          <h3>Soy pasajerx</h3>
+          <ul class="contacto-links">
+            <li><a href="mi-pase.html">Entrar a Mi pase</a></li>
+            <li><a href="comunidad.html#preguntas">Preguntas frecuentes</a></li>
+            <li><a href="comunidad.html#asociate">¿No te llegan nuestros correos?</a></li>
+          </ul>
+          <a class="btn btn-ghost" href="mailto:laplatasube@gmail.com?subject=Consulta%20de%20pasajerx">{mail} Escribirnos</a>
+        </div>
+
+        <div class="contacto-card">
+          <p class="eyebrow">Red de espacios amigos</p>
+          <h3>Tengo un comercio o espacio</h3>
+          <ul class="contacto-links">
+            <li><a href="comercios.html">Sumá tu comercio</a></li>
+            <li><a href="mi-pase.html">Verificar una membresía</a></li>
+            <li><a href="cartel.html">Cartel para tu local</a></li>
+          </ul>
+          <a class="btn btn-ghost" href="mailto:laplatasube@gmail.com?subject=Quiero%20sumar%20mi%20comercio%20a%20SUBE">{mail} Escribirnos</a>
+        </div>
+
+        <div class="contacto-card">
+          <p class="eyebrow">SUBE Canal</p>
+          <h3>Otras consultas</h3>
+          <ul class="contacto-links">
+            <li><a href="https://www.instagram.com/subecanal" target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="contenidos.html">Programación</a></li>
+          </ul>
+          <a class="btn btn-ghost" href="mailto:laplatasube@gmail.com">{mail} laplatasube@gmail.com</a>
+        </div>
+      </div>
+    </div>
+  </section>
+'''.format(mail=MAIL_ICON)
+
+# Página para comercios (no va en el menú: se llega desde Comunidad y Contacto).
+# El mail sale armado con los mismos datos que tiene la planilla de comercios.
+COMERCIOS_MAILTO = ("mailto:laplatasube@gmail.com?subject=Quiero%20sumar%20mi%20comercio%20a%20SUBE"
+                    "&body=Nombre%20del%20comercio%20o%20espacio%3A%0A"
+                    "Rubro%3A%0AInstagram%3A%0ABeneficio%20para%20la%20comunidad%3A%0A"
+                    "Ubicaci%C3%B3n%3A%0A%0A(Adjunt%C3%A1%20el%20logo%20si%20lo%20ten%C3%A9s%20a%20mano)")
+
+COMERCIOS_BODY = '''  <section class="soon comercios-page">
+    <div class="wrap">
+      <a class="back-link" href="comunidad.html">{back}Volver a Comunidad</a>
+      <div class="section-head">
+        <p class="eyebrow">Red de espacios amigos</p>
+        <h2>¿Tenés un comercio o espacio en La Plata?</h2>
+        <p>Si querés formar parte de esta red, contactate con nosotros y nuestro equipo comercial te estará respondiendo.</p>
+      </div>
+
+      <ol class="pasos" aria-label="Cómo funciona para un comercio">
+        <li><span class="paso-num" aria-hidden="true">1</span><span class="paso-text"><strong>Definís tu beneficio</strong>Los descuentos y condiciones de cada beneficio son definidos por cada espacio adherido.</span></li>
+        <li><span class="paso-num" aria-hidden="true">2</span><span class="paso-text"><strong>Aparecés en la web</strong>Tu espacio se muestra en <a href="comunidad.html#beneficios">Comunidad</a> con su logo, rubro, beneficio e Instagram.</span></li>
+        <li><span class="paso-num" aria-hidden="true">3</span><span class="paso-text"><strong>Verificás en el momento</strong>Con tu cuenta de comercio en <a href="mi-pase.html">Mi pase</a> comprobás si la persona está al día con la comunidad.</span></li>
+      </ol>
+
+      <div class="comercios-cols">
+        <div class="contacto-card">
+          <h3>Qué necesitamos de tu espacio</h3>
+          <ul class="benefit-perks">
+            <li>Nombre del comercio o espacio</li>
+            <li>Rubro</li>
+            <li>Instagram</li>
+            <li>Beneficio para la comunidad</li>
+            <li>Logo</li>
+            <li>Ubicación</li>
+          </ul>
+          <a class="btn btn-primary" href="{mailto}">{mail} Quiero sumar mi comercio</a>
+        </div>
+
+        <div class="contacto-card">
+          <h3>Si ya sos parte de la red</h3>
+          <ul class="contacto-links">
+            <li><a href="mi-pase.html">Verificar una membresía</a></li>
+            <li><a href="cartel.html">Cartel para tu local (para imprimir)</a></li>
+            <li><a href="mailto:laplatasube@gmail.com?subject=Cambio%20en%20el%20beneficio%20de%20mi%20comercio">Avisar un cambio en tu beneficio</a></li>
+          </ul>
+          <p class="comercios-count">Hoy son <strong>{total}</strong> espacios en la red.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+'''
+
+# Cartel para imprimir y pegar en el local: lleva a la página de Comunidad.
+CARTEL_BODY = '''  <section class="cartel-page">
+    <div class="wrap">
+      <div class="cartel-acciones no-print">
+        <a class="back-link" href="comercios.html">{back}Volver</a>
+        <button class="btn btn-primary" type="button" onclick="window.print()">Imprimir cartel</button>
+      </div>
+
+      <div class="cartel" id="cartel">
+        <img class="cartel-logo" src="assets/logo.png" alt="SUBE">
+        <p class="cartel-eyebrow">Comunidad de Pasajerxs</p>
+        <p class="cartel-titulo">Mostrá tu carnet de pasajerx y <span>viajá con beneficios</span></p>
+        <div class="cartel-qr" id="cartel-qr" data-destino="comunidad.html"></div>
+        <p class="cartel-url" id="cartel-url"></p>
+      </div>
     </div>
   </section>
 '''
@@ -662,7 +1371,7 @@ PROGRAMS = [
         "name": "Estación Freak",
         "video_id": "cITbAH_vBrI",
         "list_id": "PLYT7ujTIBmWZWm37-X_-CzKtCt5fgRIE1",
-        "schedule": "Jueves · 19:30 · Cada dos semanas, alterna con ¿De qué viven?",
+        "schedule": "Jueves · 19:30 · Cada dos semanas",
         "subtitle": None,
         "instagram": "estacion.freak",
         "hosts": [
@@ -678,7 +1387,7 @@ PROGRAMS = [
         "name": "¿De qué viven?",
         "video_id": "xOVJ7J8DEbE",
         "list_id": "PLYT7ujTIBmWYiJVF9dSRf6__ckwOeMf_E",
-        "schedule": "Jueves · 20:00 · Cada dos semanas, alterna con Estación Freak",
+        "schedule": "Jueves · 20:00 · Cada dos semanas",
         "subtitle": "Un programa de gestión cultural y coso..",
         "instagram": "dqv.sube",
         "hosts": [
@@ -785,7 +1494,7 @@ def programa_desde_fila(f):
         "hosts": gente([("conductor_b1", "instagram_b1"), ("conductor_b2", "instagram_b2"), ("conductor_b3", "instagram_b3")]),
         "production": gente([("produccion_c1", "instagram_c1"), ("produccion_c2", "instagram_c2")]),
         "columnists": [(f[k], None) for k in ("columnista_d1", "columnista_d2", "columnista_d3", "columnista_d4") if f.get(k)],
-        "logo": logo if f.get("logo") and os.path.exists(os.path.join(ROOT, logo)) else "",
+        "logo": logo_programa(f),
     }
 
 
@@ -840,30 +1549,55 @@ def link_programa(fila):
 
 
 def conduce_html(fila):
+    """Renglón «Conduce: …» con los nombres de la planilla (conductor_b1..b3)."""
     nombres = conductores(fila)
     if not nombres:
         return ""
     texto = nombres[0] if len(nombres) == 1 else ", ".join(nombres[:-1]) + " y " + nombres[-1]
-    return '<p class="schedule-conduce">Conduce: {}</p>'.format(html.escape(texto))
+    return '<p class="schedule-conduce"><span class="conduce-label">Conduce:</span> {}</p>'.format(html.escape(texto))
 
 
-def info_programa_html(fila):
-    e = html.escape
-    desc = fila.get("descripcion", "")
+def logo_programa(fila):
+    """Logo del programa bajado de la planilla (columna «logo»), si existe."""
     logo = "assets/programas/{}.webp".format(fila["slug"])
-    tiene_logo = bool(fila.get("logo")) and os.path.exists(os.path.join(ROOT, logo))
-    if not desc and not tiene_logo:
+    ruta = os.path.join(ROOT, logo)
+    if not (fila.get("logo") and os.path.exists(ruta)):
         return ""
-    img = ('<img class="schedule-logo" src="{}" alt="{}" loading="lazy" decoding="async">'.format(logo, e("Logo de " + nombre_programa(fila)))
-           if tiene_logo else "")
-    return '<div class="schedule-info">{}{}</div>'.format(img, '<p class="schedule-desc">{}</p>'.format(e(desc)) if desc else "")
+    import hashlib
+    with open(ruta, "rb") as fh:
+        return "{}?v={}".format(logo, hashlib.md5(fh.read()).hexdigest()[:8])
+
+
+def item_programa_html(fila, hora=None, tag=None, href=None, externo=False):
+    """Un programa en Contenidos: nombre, debajo «Conduce», y la descripción
+    con el logo al costado (el logo no queda debajo de «Conduce»)."""
+    e = html.escape
+    nombre = nombre_programa(fila)
+    if href is None and fila["slug"] in perfiles():
+        href = "programas/{}.html".format(fila["slug"])
+    destino = ' target="_blank" rel="noopener"' if externo else ""
+    titulo = ('<a href="{}"{}>{}</a>'.format(e(href), destino, e(nombre)) if href else "<span>{}</span>".format(e(nombre)))
+    if tag:
+        titulo += ' <span class="ondemand-tag">{}</span>'.format(e(tag))
+    logo = logo_programa(fila)
+    img = ('<img class="schedule-logo" src="{}" alt="{}" loading="lazy" decoding="async">'.format(e(logo), e("Logo de " + nombre))
+           if logo else "")
+    desc = fila.get("descripcion", "")
+    texto = conduce_html(fila) + ('<p class="schedule-desc">{}</p>'.format(e(desc)) if desc else "")
+    detalle = '\n                <div class="prog-detail">{}<div class="prog-text">{}</div></div>'.format(img, texto) if (img or texto) else ""
+    return """            <li class="prog-item{od}">
+              {hora}<div class="prog-body">
+                <h4 class="prog-name">{titulo}</h4>{detalle}
+              </div>
+            </li>""".format(od="" if hora else " prog-item--od",
+                            hora='<span class="schedule-time">{}</span>\n              '.format(e(hora)) if hora else "",
+                            titulo=titulo, detalle=detalle)
 
 
 def grilla_contenidos_html():
     filas = programacion_planilla()
     if not filas:
         return GRILLA_RESPALDO.replace('id="content-schedule"', 'id="content-schedule" data-perfiles="{}"'.format(perfiles_json()))
-    e = html.escape
     por_dia = {}
     for f in filas:
         dia = _slugify(f.get("dia_semana", ""))
@@ -874,75 +1608,43 @@ def grilla_contenidos_html():
         if dia not in por_dia:
             continue
         lista = sorted(por_dia[dia], key=lambda f: [int(x) for x in f["hora"].split(":")[:2]])
-        items = []
-        for f in lista:
-            alt = ""
-            if f.get("frecuencia_dias") == "14":
-                pareja = [o for o in lista if o is not f and o.get("frecuencia_dias") == "14"]
-                alt = '\n              <span class="schedule-alt">Cada dos semanas{}</span>'.format(
-                    ", alterna con " + e(nombre_programa(pareja[0])) if len(pareja) == 1 else "")
-            info = info_programa_html(f)
-            conduce = conduce_html(f)
-            items.append("""            <li>
-              <span class="schedule-time">{hora}</span>
-              {link}{conduce}{alt}{info}
-            </li>""".format(hora=e(f["hora"][:5]), link=link_programa(f), alt=alt,
-                            conduce=("\n              " + conduce) if conduce else "",
-                            info=("\n              " + info) if info else ""))
+        items = [item_programa_html(f, hora=f["hora"][:5]) for f in lista]
         bloques.append("""        <div class="schedule-day">
           <h3>{}</h3>
           <ul class="schedule-list">
 {}
           </ul>
         </div>""".format(DIA_LABEL_ES[dia], "\n".join(items)))
+    # On demand: mismo formato que el resto. Los que tienen perfil (por ejemplo
+    # Umbrales) llevan a su página; los demás (por ejemplo Especiales), a su playlist.
     ondemand = []
-    hay_especiales = False
     for f in filas:
         if _slugify(f.get("frecuencia", "")) != "on-demand":
             continue
-        desc = f.get("descripcion", "")
         if f["slug"] in perfiles():
-            href, extra, tag = "programas/{}.html".format(f["slug"]), "", "Programa"
-        else:
-            video_id, list_id = _video(f.get("playlist"))
-            if not (video_id or list_id):
-                continue  # sin link no se puede mostrar
-            href = f["playlist"]
-            extra, tag = ' target="_blank" rel="noopener"', "Playlist"
-        hay_especiales = hay_especiales or f["slug"] == "especiales"
-        ondemand.append("""            <li>
-              <a href="{href}"{extra}>
-                <span class="ondemand-main">
-                  <span class="ondemand-name">{nombre}</span>{desc}
-                </span>
-                <span class="ondemand-tag">{tag}</span>
-              </a>
-            </li>""".format(href=e(href), extra=extra, tag=tag, nombre=e(f["nombre"]),
-                            desc='\n                  <span class="ondemand-desc">{}</span>'.format(e(desc)) if desc else ""))
-    if not hay_especiales:
-        # Mientras «Especiales» no esté cargado como fila en la planilla
-        ondemand.append("""            <li>
-              <a href="https://www.youtube.com/watch?v=2E0gkC1fRDY&list=PLYT7ujTIBmWbglZ7Mmi-r4RnP1NqsDMt6" target="_blank" rel="noopener">
-                <span class="ondemand-main">
-                  <span class="ondemand-name">Especiales</span>
-                  <span class="ondemand-desc">Navegá en todos nuestros especiales</span>
-                </span>
-                <span class="ondemand-tag">Playlist</span>
-              </a>
-            </li>""")
-    return """      <div class="content-schedule" id="content-schedule" data-origen="planilla" data-perfiles="{perfiles}">
-
-{dias}
+            ondemand.append(item_programa_html(f, tag="Programa"))
+            continue
+        video_id, list_id = _video(f.get("playlist"))
+        if not (video_id or list_id):
+            avisar("«{}» está como on demand pero no tiene link de YouTube en la columna playlist: no se muestra.".format(f["nombre"]))
+            continue
+        ondemand.append(item_programa_html(f, tag="Playlist", href=f["playlist"], externo=True))
+    bloque_od = ""
+    if ondemand:
+        bloque_od = """
 
         <div class="schedule-day" id="schedule-ondemand-block">
           <h3>On demand</h3>
-          <ul class="ondemand-list">
-{od}
+          <ul class="schedule-list schedule-list--ondemand">
+{}
           </ul>
-        </div>
+        </div>""".format("\n".join(ondemand))
+    return """      <div class="content-schedule" id="content-schedule" data-origen="planilla" data-perfiles="{perfiles}">
+
+{dias}{od}
 
       </div>
-""".format(perfiles=perfiles_json(), dias="\n\n".join(bloques), od="\n".join(ondemand))
+""".format(perfiles=perfiles_json(), dias="\n\n".join(bloques), od=bloque_od)
 
 
 # Franja con los logos de los programas entre el header y la portada.
@@ -970,6 +1672,35 @@ def franja_programas_html():
   </nav>
 
 """.format("\n      ".join(items))
+
+
+def tarjetas_programas_html():
+    """Tarjetas de los programas con perfil (logo, nombre y horario), para
+    llegar a cada uno sin tener que buscarlo en la grilla."""
+    e = html.escape
+    cards = []
+    for p in programas_perfiles():
+        if p.get("logo"):
+            icono = '<span class="prog-card-logo"><img src="{}" alt="" loading="lazy" decoding="async"></span>'.format(e(p["logo"]))
+        else:
+            icono = '<span class="prog-card-logo prog-card-logo--mono" aria-hidden="true">{}</span>'.format(e(p["name"][:1].upper()))
+        horario = '<span class="prog-card-when">{}</span>'.format(e(p["schedule"])) if p.get("schedule") else ""
+        cards.append("""        <a class="prog-card" href="programas/{slug}.html">
+          {icono}
+          <span class="prog-card-text"><span class="prog-card-name">{nombre}</span>{horario}</span>
+          <span class="prog-card-arrow" aria-hidden="true">→</span>
+        </a>""".format(slug=p["slug"], icono=icono, nombre=e(p["name"]), horario=horario))
+    if not cards:
+        return ""
+    return """      <div class="content-subhead content-subhead--programas">
+        <span class="content-subhead-eyebrow">Quiénes los hacen, videos y redes</span>
+        <h3>Programas</h3>
+      </div>
+
+      <div class="prog-cards">
+{}
+      </div>
+""".format("\n".join(cards))
 
 
 def pagina_oculta(titulo):
@@ -1019,14 +1750,22 @@ PENDING_IG_NOTE = (
 
 
 def info_grid_html(p):
-    cards = []
-    if p["hosts"]:
-        cards.append('<div class="program-info-card"><h2>Conducen</h2>{}</div>'.format(people_list_html(p["hosts"])))
-    if p["columnists"]:
-        cards.append('<div class="program-info-card"><h2>Columnistas</h2>{}</div>'.format(people_list_html(p["columnists"])))
-    if p["production"]:
-        cards.append('<div class="program-info-card"><h2>Producción</h2>{}</div>'.format(people_list_html(p["production"])))
-    return '<div class="program-info-grid">' + "".join(cards) + "</div>" if cards else ""
+    """Equipo del programa en un solo bloque (conducción, columnistas y
+    producción), con los nombres de la planilla y sin links."""
+    e = html.escape
+    filas = []
+    for gente, uno, varios in ((p["hosts"], "Conductor", "Conductores"),
+                               (p["columnists"], "Columnista", "Columnistas"),
+                               (p["production"], "Producción", "Producción")):
+        nombres = [n for n, _ in gente if n]
+        if not nombres:
+            continue  # sin categorías vacías
+        filas.append('<div class="team-row"><dt>{}</dt><dd>{}</dd></div>'.format(
+            uno if len(nombres) == 1 else varios,
+            "".join('<span class="team-name">{}</span>'.format(e(n)) for n in nombres)))
+    if not filas:
+        return ""
+    return '<dl class="program-team" aria-label="Equipo del programa">{}</dl>'.format("".join(filas))
 
 
 def subtitle_html(p):
@@ -1074,20 +1813,19 @@ def program_body(p):
         {schedule}
         {ig_chip}
       </div>
+      {info_grid}
     </div>
   </section>
 
   <section class="program-body">
     <div class="wrap">
       {video}
-
-      {info_grid}
     </div>
   </section>
 '''.format(
         back=BACK_ICON,
         name=html.escape(p["name"]),
-        logo='<img class="program-logo" src="../{}" alt="Logo de {}" decoding="async">'.format(p["logo"], html.escape(p["name"])) if p.get("logo") else "",
+        logo='<img class="program-logo" src="../{}" alt="Logo de {}" decoding="async">'.format(p["logo"], html.escape(p["name"])) if p.get("logo") else "",  # noqa: E501
         subtitle=subtitle_html(p),
         schedule='<span class="program-schedule">{}</span>'.format(p["schedule"]) if p.get("schedule") else "",
         ig_chip=ig_chip_html(p),
@@ -1100,6 +1838,7 @@ def program_body(p):
 # ESCRITURA DE ARCHIVOS
 # ============================================================
 if __name__ == "__main__":
+    NEWS = load_news()
     write(
         "index.html",
         page_html(
@@ -1109,7 +1848,9 @@ if __name__ == "__main__":
                 list_id=LIVE_PLAYLIST_ID,
                 perfiles=perfiles_json(),
                 franja_programas=franja_programas_html(),
-                noticias_destacadas=NOTICIAS_DESTACADAS if visible("noticias") else "",
+                noticias_destacadas=NOTICIAS_DESTACADAS.replace("{featured_news}", home_featured_news_html(NEWS))
+                if visible("noticias") and NEWS else "",
+                beneficios_home=beneficios_home_html(),
             ),
             depth=0,
             active=None,
@@ -1124,8 +1865,9 @@ if __name__ == "__main__":
             COMUNIDAD_BODY.replace("{boton_ubicacion}", BOTON_UBICACION.format(pin=PIN_ICON) if GEOLOCALIZACION_ACTIVA else ""),
             depth=0,
             active="comunidad",
-            extra_scripts=(["logo-autoload.js", "geo.js", "carousel.js"] if GEOLOCALIZACION_ACTIVA
-                           else ["logo-autoload.js", "carousel.js"]),
+            # Con la planilla, los logos salen solo de ahí (no de imágenes viejas cargadas a mano)
+            extra_scripts=(([] if comercios_planilla() else ["logo-autoload.js"])
+                           + (["geo.js", "beneficios.js"] if GEOLOCALIZACION_ACTIVA else ["beneficios.js"])),
         ),
     )
     write(
@@ -1134,21 +1876,53 @@ if __name__ == "__main__":
             "Contenidos · SUBE",
             "Programación y noticias de SUBE.",
             CONTENIDOS_BODY.replace("{grilla}", grilla_contenidos_html()).replace(
-                "{bloque_noticias}", BLOQUE_NOTICIAS if visible("noticias") else ""),
+                "{programas}", tarjetas_programas_html()).replace(
+                "{bloque_noticias}", BLOQUE_NOTICIAS if visible("noticias") else "    </div>\n  </section>\n"),
             depth=0,
             active="contenidos",
             extra_scripts=["planillas.js", "schedule.js", "schedule-grid.js"],
         ),
     )
+    if visible("noticias"):
+        write(
+            "noticias.html",
+            page_html(
+                "Noticias · SUBE",
+                "Noticias de actualidad, coberturas y notas de la redacción de SUBE, desde La Plata.",
+                news_index_body(NEWS),
+                depth=0,
+                active="noticias",
+                extra_scripts=["news.js"],
+            ),
+        )
+        write_news_articles(NEWS)
+    else:
+        write("noticias.html", pagina_oculta("Noticias"))
     write(
-        "noticias.html",
+        "mi-pase.html",
         page_html(
-            "Noticias · SUBE",
-            "Noticias de SUBE. Próximamente.",
-            NOTICIAS_BODY,
+            "Mi pase · SUBE",
+            "Mi pase: el boleto de la Comunidad de Pasajerxs de SUBE y la verificación de membresías para comercios adheridos.",
+            mi_pase_body("publico"),
             depth=0,
-            active="contenidos",
-        ) if visible("noticias") else pagina_oculta("Noticias"),
+            active="mipase",
+            extra_scripts=["mi-pase-config.js", "mi-pase-inicio.js"],
+        ),
+    )
+    for ruta, modo, titulo in ((ACCESO_EQUIPO, "equipo", "Acceso del equipo · SUBE"),
+                               (ACCESO_GESTION, "admin", "Gestión de Mi pase · SUBE")):
+        write(ruta, page_html(titulo, "Acceso interno de SUBE.", mi_pase_body(modo), depth=0, active=None,
+                              extra_scripts=["mi-pase-config.js", "mi-pase-inicio.js"], noindex=True))
+    write(
+        "credencial.html",
+        page_html(
+            "Verificar credencial · SUBE",
+            "Verificación de credenciales del equipo de trabajo de SUBE.",
+            CREDENCIAL_BODY,
+            depth=0,
+            active=None,
+            extra_scripts=["mi-pase-config.js", "mi-pase-inicio.js"],
+        ),
     )
     write(
         "tienda.html",
@@ -1171,6 +1945,29 @@ if __name__ == "__main__":
         ),
     )
 
+    write(
+        "comercios.html",
+        page_html(
+            "Sumá tu comercio · SUBE",
+            "Cómo sumar tu comercio o espacio a la red de beneficios de la Comunidad de Pasajerxs de SUBE.",
+            COMERCIOS_BODY.format(back=BACK_ICON, mail=MAIL_ICON, mailto=COMERCIOS_MAILTO, total=total_beneficios()),
+            depth=0,
+            active="comunidad",
+        ),
+    )
+    write(
+        "cartel.html",
+        page_html(
+            "Cartel para tu local · SUBE",
+            "Cartel para imprimir de la Comunidad de Pasajerxs de SUBE.",
+            CARTEL_BODY.format(back=BACK_ICON),
+            depth=0,
+            active=None,
+            extra_scripts=["cartel.js"],
+            noindex=True,
+        ),
+    )
+
     for p in programas_perfiles():
         write(
             "programas/{}.html".format(p["slug"]),
@@ -1182,3 +1979,10 @@ if __name__ == "__main__":
                 active="contenidos",
             ),
         )
+
+    # Modo revisión (lo usa GitHub al publicar): cualquier aviso cuenta como
+    # error para que se vea la cruz roja y no se publique algo roto.
+    if "--revisar" in sys.argv and AVISOS:
+        for msg in AVISOS:
+            print("::error::" + msg)
+        sys.exit(1)
